@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Votaciones - FCFM</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Open Sans', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+    background: #fff;
+  }
+  a { color: #1f6cd0; text-decoration: none; }
+  a:hover { color: #15498d; text-decoration: underline; }
+
+  /* ---------- HEADER ---------- */
+  #top-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #5d7bb8;
+    color: #fff;
+    padding: 14px 28px;
+  }
+  #top-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: Raleway, sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: #fff;
+  }
+  #top-header .logo .dot { color: #e8743b; }
+  #top-header .user-info {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    font-size: 15px;
+  }
+  #top-header .user-info a { color: #fff; }
+  #top-header .user-info a:hover { color: #e2e8f5; }
+  #top-header .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #d9b89c center/cover no-repeat;
+    display: inline-block;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  /* ---------- LAYOUT ---------- */
+  #layout { display: flex; }
+
+  /* ---------- SIDEBAR ---------- */
+  #menu {
+    width: 270px;
+    flex-shrink: 0;
+    border-right: 1px solid #e2e2e2;
+    padding: 20px 12px 40px 24px;
+  }
+  #menu h1 {
+    font-size: 14px;
+    font-weight: 400;
+    font-family: 'Open Sans', sans-serif;
+    margin: 18px 0 6px;
+    color: #333;
+  }
+  #menu .bloque > h1 a, #menu .bloque > h1 {
+    font-weight: 700;
+    cursor: pointer;
+  }
+  #menu .bloque > h1 a { color: #333; }
+  #menu .bloque > h1 a:after { content: " \25BE"; font-size: 11px; }
+  #menu .bloque.collapsed > h1 a:after { content: " \25B8"; }
+  #menu ul { list-style: none; margin: 0; padding: 0; }
+  #menu ul li { padding: 0; }
+  #menu ul li a {
+    display: block;
+    color: #333;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 13.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #menu ul li a:hover { background: #f4f4f4; text-decoration: none; }
+  #menu ul li.sel a, #menu #favs li a.active {
+    background: #eef0f3;
+    color: #1f6cd0;
+    font-weight: 600;
+  }
+  #menu .bloque ul { max-height: 600px; overflow: hidden; transition: max-height .2s ease; }
+  #menu .bloque.collapsed ul { max-height: 0; }
+
+  /* ---------- MAIN ---------- */
+  #main { flex: 1; padding: 28px 36px 50px; min-width: 0; }
+  #main h1.titulo {
+    font-family: Raleway, sans-serif;
+    font-weight: 400;
+    font-size: 30px;
+    margin: 0 0 20px;
+    color: #333;
+  }
+
+  table#votaciones { width: 100%; border-collapse: collapse; }
+  table#votaciones thead th {
+    text-align: left;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 0 12px 10px 0;
+    border-bottom: 2px solid #999;
+  }
+  table#votaciones thead th.number,
+  table#votaciones thead th.center { text-align: center; }
+  table#votaciones tbody td {
+    padding: 14px 12px 14px 0;
+    border-bottom: 1px solid #e6e6e6;
+    vertical-align: top;
+  }
+  table#votaciones tbody td.number { text-align: center; width: 40px; color: #333; }
+  table#votaciones tbody td.responsive-main h1 {
+    font-size: 15px;
+    font-weight: 400;
+    margin: 0 0 2px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  table#votaciones tbody td.responsive-main h1 a { font-weight: 400; }
+  table#votaciones tbody td.responsive-main h2 {
+    font-size: 13px;
+    font-weight: 400;
+    color: #888;
+    margin: 0;
+  }
+  table#votaciones tbody td.number.responsive {
+    width: 90px;
+    text-align: right;
+    padding-right: 20px;
+  }
+  table#votaciones tbody td.string.center { width: 100px; text-align: left; }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+  .pill.ok { background: #deefdc; color: #2e8b57; }
+  .pill.wrong { background: #fbdada; color: #c0392b; }
+
+  .porcentaje {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 160px;
+    height: 26px;
+    border: 1px solid #ddd;
+    border-radius: 2px;
+    background: #fff;
+    overflow: hidden;
+  }
+  .porcentaje .inner { position: absolute; inset: 0; }
+  .porcentaje .bar { height: 100%; }
+  .porcentaje .bar.low { background: #c0504d; }
+  .porcentaje .bar.mid { background: #e0a845; }
+  .porcentaje .bar.high { background: #4caf78; }
+  .porcentaje span:first-child {
+    position: relative;
+    z-index: 1;
+    margin-left: auto;
+    margin-right: 10px;
+    font-size: 13px;
+    color: #333;
+  }
+  .porcentaje .tooltip { display: none; }
+
+  /* ---------- FOOTER ---------- */
+  #footer {
+    border-top: 1px solid #e6e6e6;
+    padding: 18px 0;
+    text-align: center;
+    font-size: 13px;
+  }
+  #footer ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin: 6px 0;
+    padding: 0;
+    flex-wrap: wrap;
+  }
+  #footer ul li a { color: #1f6cd0; }
+  #footer .brand a { color: #888; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<div id="top-header">
+  <div class="logo"><span class="dot">●</span>campus</div>
+  <div class="user-info">
+    <span><span class="avatar"></span>Daniela Moraga Inostroza</span>
+    <a href="#">✉ Contacto</a>
+    <a href="#">⊗ Salir</a>
+  </div>
+</div>
+
+<div id="layout">
+  <div id="menu">
+    <div id="favoritos">
+      <h1>Favoritos</h1>
+      <ul id="favs">
+        <li><a href="#">Inscripción Académica - FCFM</a></li>
+        <li><a href="#">Títulos y Grados - FCFM</a></li>
+        <li><a href="#" class="active">Votaciones - FCFM</a></li>
+      </ul>
+    </div>
+
+    <div id="servicios">
+      <h1>Servicios</h1>
+      <ul>
+        <li><a href="#">Formularios</a></li>
+        <li><a href="#">Repositorio Normativo Contraloría Universitaria</a></li>
+        <li class="sel"><a href="#">Votaciones</a></li>
+        <li><a href="#">Workflow</a></li>
+      </ul>
+    </div>
+
+    <div class="bloque" id="fcfm">
+      <h1><a href="javascript:void(0)" onclick="this.closest('.bloque').classList.toggle('collapsed')">FCFM</a></h1>
+      <ul>
+        <li><a href="#">Boletines</a></li>
+        <li><a href="#">Bolsa de Empleos</a></li>
+        <li><a href="#">Catálogo de Cursos</a></li>
+        <li><a href="#">Certificados</a></li>
+        <li><a href="#">Certificados Complementarios</a></li>
+        <li><a href="#">Concursos Estudiantiles</a></li>
+        <li><a href="#">Consejos de Escuela</a></li>
+        <li><a href="#">Consejos de Facultad</a></li>
+        <li><a href="#">Encuestas Acreditación</a></li>
+        <li><a href="#">Encuestas Docentes</a></li>
+        <li><a href="#">Eventos</a></li>
+        <li><a href="#">Formulario Visitas</a></li>
+        <li><a href="#">Grupos Organizados</a></li>
+        <li><a href="#">Inscripción Académica</a></li>
+        <li><a href="#">Memorias y Trabajos de Título</a></li>
+        <li><a href="#">Movilidad Internacional</a></li>
+        <li><a href="#">Postulaciones Docentes</a></li>
+        <li><a href="#">Prácticas</a></li>
+        <li><a href="#">Programas de Cursos</a></li>
+        <li><a href="#">Reserva de Espacios</a></li>
+        <li><a href="#">Semestre de Verano</a></li>
+        <li><a href="#">Títulos y Grados</a></li>
+        <li><a href="#">Unidades Becarias</a></li>
+        <li class="sel"><a href="#">Votaciones</a></li>
+      </ul>
+    </div>
+
+    <div class="bloque collapsed" id="otros_catalogos">
+      <h1><a href="javascript:void(0)" onclick="this.closest('.bloque').classList.toggle('collapsed')">Otros Catálogos</a></h1>
+      <ul>
+        <li><a href="#">Artes</a></li>
+        <li><a href="#">Bachillerato</a></li>
+        <li><a href="#">Ciencias</a></li>
+        <li><a href="#">Ciencias Agronómicas</a></li>
+        <li><a href="#">DRI</a></li>
+        <li><a href="#">Derecho</a></li>
+        <li><a href="#">FACSO</a></li>
+        <li><a href="#">FAU</a></li>
+        <li><a href="#">FCEI</a></li>
+        <li><a href="#">Filosofía</a></li>
+        <li><a href="#">Forestal</a></li>
+        <li><a href="#">Gobierno</a></li>
+        <li><a href="#">IEI</a></li>
+        <li><a href="#">INTA</a></li>
+        <li><a href="#">Instituto de Educación</a></li>
+        <li><a href="#">Medicina</a></li>
+        <li><a href="#">Odontología</a></li>
+        <li><a href="#">QyF</a></li>
+        <li><a href="#">Veterinaria</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="main">
+    <h1 class="titulo">Votaciones - FCFM</h1>
+
+    <table id="votaciones">
+      <colgroup>
+        <col style="width:40px"><col><col style="width:90px"><col style="width:190px"><col style="width:100px">
+      </colgroup>
+      <thead>
+        <tr>
+          <th class="number">Nº</th>
+          <th>Votación</th>
+          <th class="number responsive">Claustro</th>
+          <th class="center">Respuestas</th>
+          <th class="string center">Estado</th>
+        </tr>
+      </thead>
+      <tbody id="rows-body"></tbody>
+    </table>
+
+    <div id="footer">
+      <ul>
+        <li><a href="#">🖌 Tema</a></li>
+        <li><a href="#">🌐 Idioma</a></li>
+      </ul>
+      <ul>
+        <li><a href="#">Guía Telefónica</a></li>
+        <li><a href="#">Políticas de Uso</a></li>
+        <li><a href="#">Privacidad</a></li>
+        <li><a href="#">♿ Accesibilidad</a></li>
+      </ul>
+      <div class="brand"><a href="#">Centro Tecnológico Ucampus</a></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const data = [
+    { n:1, titulo:"[Elecciones FECh 2026] Consejerías de la Facultad de Ciencias Físicas y Matemáticas", respondida:true, desde:"11/05/2026 a las 06:00 hrs.", hasta:"12/05/2026 a las 20:00 hrs.", claustro:6264, resp:2587, pct:41.3 },
+    { n:2, titulo:"[Elecciones FECh 2026] Mesa Directiva", respondida:true, desde:"11/05/2026 a las 06:00 hrs.", hasta:"12/05/2026 a las 20:00 hrs.", claustro:37577, resp:18446, pct:49.1 },
+    { n:3, titulo:"[Plebiscito Estatutario FECh 2025] - Facultad de Ciencias Físicas y Matemáticas", respondida:false, desde:"29/10/2025 a las 06:00 hrs.", hasta:"31/10/2025 a las 18:00 hrs.", claustro:6583, resp:1364, pct:20.7 },
+    { n:4, titulo:"[Elecciones Congreso Extraordinario FECh 2024] Congresales de la Facultad de Ciencias Físicas y Matemáticas", respondida:false, desde:"21/10/2024 a las 06:00 hrs.", hasta:"22/10/2024 a las 20:00 hrs.", claustro:6658, resp:117, pct:1.8 },
+    { n:5, titulo:"[Elecciones FECh 2024] Mesa Directiva", respondida:true, desde:"22/05/2024 a las 06:00 hrs.", hasta:"23/05/2024 a las 20:00 hrs.", claustro:36824, resp:3321, pct:9.0 },
+    { n:6, titulo:"[Elecciones FECh 2024] Consejerías de la Facultad de Ciencias Físicas y Matématicas", respondida:true, desde:"07/05/2024 a las 06:00 hrs.", hasta:"08/05/2024 a las 20:00 hrs.", claustro:6570, resp:1573, pct:23.9 },
+    { n:7, titulo:"[Elecciones FECh 2024] Mesa Directiva", respondida:true, desde:"07/05/2024 a las 06:00 hrs.", hasta:"08/05/2024 a las 20:00 hrs.", claustro:36824, resp:8608, pct:23.4 },
+    { n:8, titulo:"[Elecciones FECh 2023] Mesa Directiva", respondida:false, desde:"28/08/2023 a las 06:00 hrs.", hasta:"29/08/2023 a las 20:00 hrs.", claustro:37622, resp:9841, pct:26.2 },
+    { n:9, titulo:"[Elecciones FECh 2023] Consejerías de la Facultad de Ciencias Físicas y Matemáticas", respondida:false, desde:"28/08/2023 a las 06:00 hrs.", hasta:"29/08/2023 a las 20:00 hrs.", claustro:6512, resp:1663, pct:25.5 },
+    { n:10, titulo:"Consulta Estudiantil Constituyente", respondida:false, desde:"20/07/2022 a las 09:00 hrs.", hasta:"22/07/2022 a las 22:00 hrs.", claustro:33655, resp:2720, pct:8.1 },
+    { n:11, titulo:"Ratificación de acuerdo asamblea UChile", respondida:false, desde:"13/12/2021 a las 08:00 hrs.", hasta:"14/12/2021 a las 23:59 hrs.", claustro:41591, resp:3740, pct:9.0 },
+    { n:12, titulo:"Simulacro Constituyente", respondida:false, desde:"22/10/2020 a las 08:00 hrs.", hasta:"22/10/2020 a las 23:59 hrs.", claustro:31901, resp:1579, pct:4.9 },
+    { n:13, titulo:"Consulta Acuerdo de Escazú", respondida:false, desde:"21/09/2020 a las 09:00 hrs.", hasta:"22/09/2020 a las 21:00 hrs.", claustro:38603, resp:4147, pct:10.7 },
+    { n:14, titulo:"Elección de representantes estudiantiles ante el Senado Universitario 2020-2022", respondida:false, desde:"19/08/2020 a las 09:00 hrs.", hasta:"20/08/2020 a las 18:00 hrs.", claustro:41025, resp:3611, pct:8.8 },
+  ];
+
+  function fmt(n) { return n.toLocaleString('es-CL'); }
+  function barClass(pct) { return pct >= 40 ? 'high' : pct >= 15 ? 'mid' : 'low'; }
+
+  const tbody = document.getElementById('rows-body');
+  tbody.innerHTML = data.map(v => `
+    <tr>
+      <td class="number">${v.n}</td>
+      <td class="string responsive-main">
+        <h1>
+          <a href="#">${v.titulo}</a>
+          <span class="pill ${v.respondida ? 'ok' : 'wrong'}">${v.respondida ? '✓' : '✕'} ${v.respondida ? 'Respondida' : 'Sin Responder'}</span>
+        </h1>
+        <h2>Desde el ${v.desde} hasta el ${v.hasta}</h2>
+      </td>
+      <td class="number responsive">${fmt(v.claustro)}</td>
+      <td class="center">
+        <div class="porcentaje">
+          <div class="inner"><div class="bar ${barClass(v.pct)}" style="width:${v.pct}%"></div></div>
+          <span>${fmt(v.resp)}</span>
+        </div>
+      </td>
+      <td class="string center">Finalizada</td>
+    </tr>
+  `).join('');
+</script>
+
+</body>
+</html>
