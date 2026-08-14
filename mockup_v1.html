@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>UParticipa</title>
+<style>
+  :root{
+    --header-blue:#5d7bb8;
+    --link:#1f6cd0;
+    --link-dark:#15498d;
+    --text:#333;
+    --subtext:#888;
+    --border:#e6e6e6;
+    --border-strong:#999;
+    --green-bg:#deefdc; --green:#2e8b57;
+    --red-bg:#fbdada; --red:#c0392b;
+    --amber-bg:#fdf0d8; --amber:#b5790a;
+    --uparticipa-navy:#16284f;
+    --uparticipa-navy-light:#26396b;
+    --uparticipa-accent:#2f6fed;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Open Sans',Arial,sans-serif;font-size:14px;line-height:1.6;color:var(--text);background:#fff;}
+  a{color:var(--link);text-decoration:none;}
+  a:hover{color:var(--link-dark);text-decoration:underline;}
+
+  /* ---------- HEADER ---------- */
+  #top-header{display:flex;align-items:center;justify-content:space-between;background:var(--header-blue);color:#fff;padding:14px 28px;}
+  #top-header .logo{display:flex;align-items:center;gap:6px;font-size:26px;font-weight:700;color:#fff;}
+  #top-header .logo .dot{color:#e8743b;}
+  #top-header .user-info{display:flex;align-items:center;gap:28px;font-size:15px;}
+  #top-header .user-info a{color:#fff;}
+  #top-header .user-info a:hover{color:#e2e8f5;}
+  #top-header .avatar{width:32px;height:32px;border-radius:50%;background:#d9b89c;display:inline-block;margin-right:8px;vertical-align:middle;}
+
+  /* ---------- LAYOUT ---------- */
+  #layout{display:flex;}
+  #menu{width:250px;flex-shrink:0;border-right:1px solid #e2e2e2;padding:20px 12px 40px 24px;}
+  #menu h1{font-size:14px;font-weight:400;margin:18px 0 6px;color:#333;}
+  #menu .bloque > h1{font-weight:700;}
+  #menu .bloque > h1:after{content:" \25BE";font-size:11px;}
+  #menu ul{list-style:none;margin:0;padding:0;}
+  #menu ul li a{display:block;color:#333;padding:6px 8px;border-radius:4px;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  #menu ul li a:hover{background:#f4f4f4;text-decoration:none;}
+  #menu ul li.sel a{background:#eef0f3;color:var(--link);font-weight:600;}
+  #main{flex:1;padding:24px 40px 60px;min-width:0;max-width:1180px;}
+
+  /* ---------- BREADCRUMB + BAND ---------- */
+  .breadcrumb{font-size:13px;color:var(--subtext);margin-bottom:14px;}
+  .breadcrumb a{color:var(--subtext);}
+  .breadcrumb .sep{margin:0 6px;}
+
+  .uparticipa-band{
+    display:flex;align-items:center;gap:12px;
+    background:var(--uparticipa-navy);
+    color:#fff;
+    padding:10px 18px;
+    border-radius:6px;
+    margin-bottom:24px;
+  }
+  .uparticipa-band .wordmark{font-weight:700;font-size:14.5px;letter-spacing:.3px;}
+  .uparticipa-band .tagline{font-size:12.5px;color:#a9b6d6;}
+  .hexagon{
+    width:26px;height:26px;flex-shrink:0;
+    background:linear-gradient(135deg,#4d6fc7,#2f6fed);
+    clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:13px;
+  }
+  .hexagon.spin{ animation: spin 2.6s linear infinite; }
+  @keyframes spin{ from{ transform:rotate(0deg);} to{ transform:rotate(360deg);} }
+
+  h1.titulo{font-weight:400;font-size:28px;margin:0 0 4px;color:#333;}
+  .page-subtitle{color:var(--subtext);margin:0 0 28px;font-size:14px;}
+
+  /* ---------- PILLS ---------- */
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:4px;white-space:nowrap;}
+  .pill.ok{background:var(--green-bg);color:var(--green);}
+  .pill.wrong{background:var(--red-bg);color:var(--red);}
+  .pill.progress{background:var(--amber-bg);color:var(--amber);}
+  .pill.progress .dot{width:6px;height:6px;border-radius:50%;background:var(--amber);display:inline-block;}
+
+  /* ---------- SECTION LABEL ---------- */
+  .section-label{font-size:15px;font-weight:700;margin:0 0 14px;color:#333;}
+
+  /* ---------- ACTIVE VOTE CARDS ---------- */
+  .active-card{
+    display:flex;align-items:center;justify-content:space-between;gap:20px;
+    border:1px solid var(--border);border-left:4px solid var(--amber);
+    border-radius:6px;padding:16px 20px;margin-bottom:12px;background:#fffdf7;
+  }
+  .active-card .meta h3{margin:0 0 4px;font-size:15px;font-weight:600;}
+  .active-card .meta p{margin:0;font-size:12.5px;color:var(--subtext);}
+  .btn-primary{
+    background:var(--uparticipa-navy);color:#fff;border:none;border-radius:5px;
+    padding:9px 20px;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap;
+  }
+  .btn-primary:hover{background:var(--uparticipa-navy-light);}
+  .btn-secondary{
+    background:#fff;color:var(--uparticipa-navy);border:1px solid var(--uparticipa-navy);border-radius:5px;
+    padding:9px 20px;font-size:13.5px;font-weight:600;cursor:pointer;
+  }
+  .btn-secondary:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* ---------- HISTORY TABLE ---------- */
+  table.hist{width:100%;border-collapse:collapse;margin-top:6px;}
+  table.hist thead th{text-align:left;font-size:14px;font-weight:700;padding:0 12px 8px 0;border-bottom:2px solid var(--border-strong);}
+  table.hist tbody td{padding:12px 12px 12px 0;border-bottom:1px solid var(--border);vertical-align:top;font-size:13.5px;}
+  table.hist tbody td.num{width:32px;color:#333;}
+  table.hist h3{font-size:14.5px;font-weight:400;margin:0 0 2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  table.hist .date{font-size:12.5px;color:var(--subtext);}
+  .porcentaje{position:relative;display:inline-flex;align-items:center;width:140px;height:24px;border:1px solid #ddd;border-radius:2px;background:#fff;overflow:hidden;}
+  .porcentaje .inner{position:absolute;inset:0;}
+  .porcentaje .bar{height:100%;}
+  .porcentaje .bar.low{background:#c0504d;}
+  .porcentaje .bar.mid{background:#e0a845;}
+  .porcentaje .bar.high{background:#4caf78;}
+  .porcentaje span{position:relative;z-index:1;margin-left:auto;margin-right:8px;font-size:12.5px;}
+  .resp-cell{display:flex;flex-direction:column;width:140px;}
+  .resp-cell .resp-num{font-size:13.5px;}
+  .resp-cell .resp-pct{font-size:11.5px;color:var(--subtext);}
+  .estado-cell{padding:12px 16px;}
+  .estado-cell.abierta{background:#d9f0de;color:#1f7a3d;font-weight:600;}
+
+  /* ---------- STEP INDICATOR ---------- */
+  .steps{display:flex;align-items:center;gap:0;margin-bottom:26px;}
+  .step{display:flex;align-items:center;gap:10px;padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600;}
+  .step .num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;}
+  .step.active{background:var(--uparticipa-navy);color:#fff;}
+  .step.active .num{background:#fff;color:var(--uparticipa-navy);}
+  .step.inactive{color:var(--subtext);}
+  .step.inactive .num{background:#eee;color:var(--subtext);}
+  .step-divider{width:36px;height:1px;background:var(--border);}
+
+  /* ---------- BALLOT CARD ---------- */
+  .ballot-card{border:1px solid var(--border);border-radius:8px;padding:28px 32px;max-width:680px;}
+  .ballot-card h2{font-size:17px;font-weight:600;margin:0 0 6px;}
+  .ballot-card .q-meta{font-size:12.5px;color:var(--subtext);margin-bottom:14px;}
+  .ballot-card .note{font-size:12.5px;color:var(--subtext);font-style:italic;margin-bottom:20px;line-height:1.5;}
+  .radio-option{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:6px;margin-bottom:8px;cursor:pointer;transition:.15s;}
+  .radio-option:hover{border-color:var(--uparticipa-accent);}
+  .radio-option input{accent-color:var(--uparticipa-navy);width:16px;height:16px;}
+  .radio-option.selected{border-color:var(--uparticipa-navy);background:#f3f6fc;}
+  .radio-option .opt-label{font-size:13.5px;}
+  .radio-option .opt-code{font-weight:700;color:var(--uparticipa-navy);margin-right:4px;}
+  .radio-option.special{border-style:dashed;color:var(--subtext);}
+  .ballot-actions{display:flex;justify-content:space-between;margin-top:22px;}
+
+  /* ---------- CABINA ESTILO UCAMPUS (vote-*) ---------- */
+  .vote-breadcrumb{font-size:20px;color:#7a9bd1;margin-bottom:4px;}
+  .vote-breadcrumb a{color:#7a9bd1;}
+  .vote-breadcrumb .sep{margin:0 8px;font-size:15px;}
+  .vote-breadcrumb strong{color:#7a9bd1;font-weight:600;}
+  .vote-title{font-size:19px;font-weight:600;margin:6px 0 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .pill.abierta-pill{background:#d9f0de;color:#1f7a3d;font-size:12px;font-weight:600;padding:2px 10px;border-radius:4px;}
+  .vote-dates{font-size:13px;color:var(--subtext);margin-bottom:18px;}
+  .vote-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:0;}
+  .vtab{background:#f3f3f3;border:1px solid var(--border);border-bottom:none;padding:8px 22px;font-size:13.5px;cursor:pointer;color:#555;border-radius:5px 5px 0 0;margin-right:2px;}
+  .vtab.active{background:#fff;border-bottom:1px solid #fff;color:#333;font-weight:600;position:relative;top:1px;}
+  .vote-panel{padding:22px 26px 28px;max-width:560px;}
+  .vote-instruction{font-size:14px;margin:0 0 16px;color:#333;}
+  .simple-radio{display:flex;align-items:flex-start;gap:10px;padding:7px 0;cursor:pointer;font-size:13.5px;}
+  .simple-radio input{margin-top:2px;accent-color:var(--link);width:15px;height:15px;}
+  .simple-radio em{color:var(--subtext);font-size:12.5px;}
+  .btn-vote{background:#2d7ff9;color:#fff;border:none;border-radius:4px;padding:9px 28px;font-size:13.5px;font-weight:600;cursor:pointer;margin-top:18px;}
+  .btn-vote:hover{background:#1f6cd0;}
+
+  /* ---------- BANNERS Y SPINNER ESTILO UCAMPUS ---------- */
+  .uc-banner{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-radius:4px;font-size:14px;margin:20px 0;}
+  .uc-banner.warning{background:#f0ecd6;color:#5a4e1e;}
+  .uc-banner.success{background:#ddeedd;color:#2c5e2e;}
+  .banner-close{background:none;border:none;font-size:14px;cursor:pointer;color:inherit;opacity:.6;padding:0 4px;}
+  .banner-close:hover{opacity:1;}
+  .uc-loading{display:flex;align-items:center;gap:12px;padding:28px 0 0;color:var(--subtext);font-size:14px;}
+  .uc-spinner{display:inline-block;width:20px;height:20px;position:relative;flex-shrink:0;}
+  .uc-spinner::before{content:'';display:block;width:100%;height:100%;border-radius:50%;background:radial-gradient(circle, transparent 35%, transparent 36%),conic-gradient(#999 0deg, #bbb 60deg, #ddd 120deg, #eee 180deg, #f3f3f3 240deg, transparent 300deg, transparent 360deg);animation:spin-simple .9s linear infinite;}
+  @keyframes spin-simple{to{transform:rotate(360deg);}}
+  .results-breadcrumb{font-size:14px;color:#3f6fc4;margin-bottom:6px;}
+  .results-breadcrumb a{color:#3f6fc4;}
+  .results-breadcrumb .sep{margin:0 6px;}
+  .results-breadcrumb strong{font-weight:400;color:#3f6fc4;}
+  .results-title{font-weight:400;font-size:27px;margin:4px 0 4px;display:flex;align-items:baseline;gap:14px;color:#333;}
+  .results-status{font-size:13px;color:var(--subtext);font-weight:400;white-space:nowrap;}
+  .sort-toggle{display:flex;gap:30px;margin:22px 0 24px;font-size:13px;}
+  .toggle-radio{display:flex;align-items:center;gap:6px;cursor:pointer;}
+  .toggle-radio input{accent-color:var(--link);width:14px;height:14px;}
+  .results-desc{font-size:13.5px;color:#333;max-width:760px;margin:0 0 12px;line-height:1.6;}
+  .candidate-item{max-width:760px;margin:18px 0 0;}
+  .cand-label{font-size:13.5px;color:#333;margin-bottom:4px;}
+  .cand-label strong{font-weight:600;}
+  .cand-count{color:var(--subtext);margin-left:4px;}
+  .candidate-bar{position:relative;height:22px;width:100%;}
+  .candidate-bar .fill{height:100%;background:#8fb3e8;}
+  .candidate-bar .pct{position:absolute;top:0;right:0;bottom:0;display:flex;align-items:center;padding-right:2px;font-size:12px;color:#333;}
+  .results-summary{display:flex;justify-content:flex-end;align-items:center;gap:60px;background:#f5f5f5;padding:26px 34px;border-radius:6px;margin-top:32px;max-width:760px;}
+  .summary-stats{display:flex;flex-direction:column;gap:14px;}
+  .srow{display:flex;justify-content:flex-end;align-items:baseline;gap:24px;font-size:13.5px;}
+  .slabel{color:#555;}
+  .svalue{font-weight:600;min-width:50px;text-align:right;}
+  .svalue small{display:block;color:var(--subtext);font-weight:400;font-size:11.5px;text-align:right;}
+  .summary-donut{display:flex;align-items:center;gap:14px;}
+  .donut2{width:84px;height:84px;border-radius:50%;background:conic-gradient(#8bc79a 0% 41.3%, #e9a7ab 41.3% 100%);}
+  .donut-legend{font-size:12px;color:#555;display:flex;flex-direction:column;gap:6px;}
+  .donut-legend .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px;}
+  .donut-legend .dot.green{background:#8bc79a;}
+  .donut-legend .dot.pink{background:#e9a7ab;}
+
+  /* ---------- ENCRYPTING ---------- */
+  .encrypting-wrap{display:flex;align-items:center;justify-content:center;min-height:420px;}
+  .encrypting-card{border:1px solid var(--border);border-radius:10px;padding:48px 56px;text-align:center;max-width:420px;}
+  .encrypting-card .hexagon{width:64px;height:64px;font-size:28px;margin:0 auto 22px;}
+  .encrypting-card h2{font-size:17px;font-weight:600;margin:0 0 8px;}
+  .encrypting-card p{font-size:13px;color:var(--subtext);margin:0 0 18px;}
+  .dots{display:flex;justify-content:center;gap:6px;}
+  .dots span{width:6px;height:6px;border-radius:50%;background:var(--uparticipa-navy);opacity:.3;animation:pulse 1.2s infinite;}
+  .dots span:nth-child(2){animation-delay:.2s;} .dots span:nth-child(3){animation-delay:.4s;}
+  @keyframes pulse{0%,100%{opacity:.25;} 50%{opacity:1;}}
+  .encrypting-foot{font-size:11.5px;color:#bbb;margin-top:18px;}
+
+  /* ---------- TABS (urna / resultados) ---------- */
+  .uparticipa-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:24px;}
+  .uparticipa-tabs button{
+    background:none;border:none;padding:10px 18px;font-size:13.5px;font-weight:600;color:var(--subtext);
+    cursor:pointer;border-bottom:3px solid transparent;
+  }
+  .uparticipa-tabs button.active{color:var(--uparticipa-navy);border-bottom-color:var(--uparticipa-navy);}
+
+  /* ---------- URNA TABLE ---------- */
+  table.urna{width:100%;border-collapse:collapse;font-family:'Open Sans',Arial,sans-serif;font-size:13.5px;}
+  table.urna thead th{text-align:left;font-size:13px;font-weight:700;padding:0 12px 10px 0;border-bottom:2px solid var(--border-strong);}
+  table.urna tbody td{padding:10px 12px 10px 0;border-bottom:1px solid var(--border);color:#444;word-break:break-all;}
+  .urna-panel{padding:0 0 28px;}
+  .subtabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-top:24px;margin-bottom:22px;}
+  .subtab{display:inline-block;padding:7px 18px;font-size:13.5px;color:var(--link);cursor:pointer;border:1px solid transparent;border-bottom:none;text-decoration:none;border-radius:4px 4px 0 0;margin-bottom:-1px;}
+  .subtab:hover{color:var(--link-dark);text-decoration:none;}
+  .subtab.active{color:#333;background:#fff;border-color:var(--border);font-weight:400;cursor:default;}
+  .pagination{display:flex;align-items:center;justify-content:space-between;margin-top:18px;font-size:13px;color:var(--subtext);}
+  .pagination .nav-btn{display:flex;gap:8px;}
+  .pagination button{background:#fff;border:1px solid var(--border-strong);border-radius:4px;padding:6px 14px;font-size:12.5px;cursor:pointer;}
+  .pagination button:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* ---------- RESULTADOS ---------- */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:30px;}
+  .stat-card{border:1px solid var(--border);border-radius:8px;padding:16px 18px;}
+  .stat-card .label{font-size:12px;color:var(--subtext);margin-bottom:6px;}
+  .stat-card .value{font-size:22px;font-weight:700;color:#333;}
+  .stat-card .sub{font-size:12px;color:var(--subtext);margin-top:2px;}
+
+  .results-layout{display:flex;gap:48px;align-items:flex-start;margin-bottom:36px;}
+  .donut{width:170px;height:170px;border-radius:50%;flex-shrink:0;
+    background: conic-gradient(var(--green) 0% 41.3%, var(--amber) 41.3% 49.6%, var(--red) 49.6% 100%);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .donut .hole{width:100px;height:100px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .donut .hole .big{font-size:20px;font-weight:700;}
+  .donut .hole .small{font-size:11px;color:var(--subtext);}
+  .legend{display:flex;flex-direction:column;gap:10px;justify-content:center;}
+  .legend .row{display:flex;align-items:center;gap:8px;font-size:13.5px;}
+  .legend .sw{width:10px;height:10px;border-radius:2px;}
+
+  .candidate-row{display:flex;align-items:center;gap:14px;margin-bottom:14px;}
+  .candidate-row .name{width:340px;font-size:13.5px;flex-shrink:0;}
+  .candidate-row .name .winner{display:inline-block;margin-left:8px;background:var(--green-bg);color:var(--green);font-size:11px;font-weight:700;padding:1px 7px;border-radius:3px;}
+  .candidate-row .bar-wrap{flex:1;height:20px;background:#f2f2f2;border-radius:3px;overflow:hidden;}
+  .candidate-row .bar-fill{height:100%;background:var(--uparticipa-navy);}
+  .candidate-row .pct{width:80px;text-align:right;font-size:13px;color:var(--subtext);}
+
+  /* ---------- VIEW SWITCHER (solo para esta vista previa) ---------- */
+  #preview-switcher{
+    display:flex;gap:6px;flex-wrap:wrap;background:#fafafa;border-bottom:1px solid var(--border);
+    padding:10px 40px;font-size:12.5px;
+  }
+  #preview-switcher .label{color:var(--subtext);margin-right:10px;align-self:center;}
+  #preview-switcher button{
+    background:#fff;border:1px solid var(--border-strong);border-radius:14px;padding:5px 14px;cursor:pointer;color:#333;
+  }
+  #preview-switcher button.active{background:var(--uparticipa-navy);color:#fff;border-color:var(--uparticipa-navy);}
+  .view{display:none;}
+  .view.active{display:block;}
+</style>
+</head>
+<body>
+
+<div id="preview-switcher">
+  <span class="label">Vista previa — pantallas del flujo:</span>
+  <button data-view="v1" class="active">1. Lista de votaciones</button>
+  <button data-view="v2">2. Cabina de votación</button>
+  <button data-view="v3">3. Encriptando voto</button>
+  <button data-view="v4">4. Urna electrónica</button>
+  <button data-view="v5">5. Resultados</button>
+</div>
+
+<div id="top-header">
+  <div class="logo"><span class="dot">●</span>campus</div>
+  <div class="user-info">
+    <span><span class="avatar"></span>Daniela Moraga Inostroza</span>
+    <a href="#">✉ Contacto</a>
+    <a href="#">⊗ Salir</a>
+  </div>
+</div>
+
+<div id="layout">
+  <div id="menu">
+    <div id="favoritos">
+      <h1>Favoritos</h1>
+      <ul>
+        <li><a href="#">Inscripción Académica - FCFM</a></li>
+        <li><a href="#">Títulos y Grados - FCFM</a></li>
+        <li><a href="#">Votaciones - FCFM</a></li>
+      </ul>
+    </div>
+    <div id="servicios">
+      <h1>Servicios</h1>
+      <ul>
+        <li><a href="#">Formularios</a></li>
+        <li><a href="#">Repositorio Normativo Contraloría Universitaria</a></li>
+        <li><a href="#">Votaciones</a></li>
+        <li class="sel"><a href="#">UParticipa</a></li>
+        <li><a href="#">Workflow</a></li>
+      </ul>
+    </div>
+    <div class="bloque">
+      <h1>FCFM</h1>
+      <ul>
+        <li><a href="#">Boletines</a></li>
+        <li><a href="#">Bolsa de Empleos</a></li>
+        <li><a href="#">Catálogo de Cursos</a></li>
+        <li><a href="#">Certificados</a></li>
+        <li><a href="#">Concursos Estudiantiles</a></li>
+        <li><a href="#">Consejos de Escuela</a></li>
+        <li><a href="#">Consejos de Facultad</a></li>
+        <li><a href="#">Encuestas Acreditación</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="main">
+
+    <!-- ============ VIEW 1: LISTA DE VOTACIONES ============ -->
+    <section class="view active" id="v1">
+      <h1 class="titulo">Votaciones</h1>
+
+      <table class="hist">
+        <thead><tr><th class="num">Nº</th><th>Votación</th><th>Claustro</th><th>Respuestas</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="num">1</td>
+            <td>
+              <h3><a href="#">Votación 1 [Tipo de elección]</a></h3>
+              <div class="date">Desde el 11/05/2026 hasta el 12/05/2026 a las 20:00 hrs.</div>
+            </td>
+            <td>37.577</td>
+            <td><div class="resp-cell"><span class="resp-num">0</span><span class="resp-pct">0%</span></div></td>
+            <td class="estado-cell abierta">Abierta</td>
+          </tr>
+          <tr>
+            <td class="num">2</td>
+            <td>
+              <h3><a href="#">Votación 2 [Tipo de consulta]</a></h3>
+              <div class="date">Desde el 20/06/2026 hasta el 30/06/2026 a las 18:00 hrs.</div>
+            </td>
+            <td>41.025</td>
+            <td><div class="resp-cell"><span class="resp-num">0</span><span class="resp-pct">0%</span></div></td>
+            <td class="estado-cell abierta">Abierta</td>
+          </tr>
+          <tr>
+            <td class="num">3</td>
+            <td>
+              <h3><a href="#">Votación 3 [Tipo de elección]</a><span class="pill ok">✓ Respondida</span></h3>
+              <div class="date">Desde el 11/05/2026 hasta el 12/05/2026 a las 20:00 hrs.</div>
+            </td>
+            <td>6.264</td>
+            <td><div class="porcentaje"><div class="inner"><div class="bar high" style="width:41.3%"></div></div><span>2.587</span></div></td>
+            <td class="estado-cell">Finalizada</td>
+          </tr>
+          <tr>
+            <td class="num">4</td>
+            <td>
+              <h3><a href="#">Votación 4 [Tipo de plebiscito]</a><span class="pill wrong">✕ Sin Responder</span></h3>
+              <div class="date">Desde el 29/10/2025 hasta el 31/10/2025 a las 18:00 hrs.</div>
+            </td>
+            <td>6.583</td>
+            <td><div class="porcentaje"><div class="inner"><div class="bar mid" style="width:20.7%"></div></div><span>1.364</span></div></td>
+            <td class="estado-cell">Finalizada</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ============ VIEW 2: CABINA ============ -->
+    <section class="view" id="v2">
+      <div class="vote-breadcrumb"><a href="#">UParticipa</a><span class="sep">»</span><strong>Votación 3 [Tipo de elección]</strong></div>
+
+      <h2 class="vote-title">Votación 3 [Tipo de elección] <span class="pill abierta-pill">Abierta</span></h2>
+      <div class="vote-dates">Desde el 11/05/2026 a las 06:00 hrs. hasta el 12/05/2026 a las 20:00 hrs.</div>
+
+      <div class="vote-tabs">
+        <button class="vtab active">Votar</button>
+        <button class="vtab">Urna electrónica</button>
+        <button class="vtab">Resultados</button>
+      </div>
+
+      <div class="vote-panel">
+        <p class="vote-instruction">Seleccionar la opción de su preferencia</p>
+
+        <label class="simple-radio">
+          <input type="radio" name="opt" checked>
+          <span><strong>A-1</strong> Opción A <em>(Lista 1)</em></span>
+        </label>
+        <label class="simple-radio">
+          <input type="radio" name="opt">
+          <span><strong>B-1</strong> Opción B <em>(Lista 2)</em></span>
+        </label>
+        <label class="simple-radio">
+          <input type="radio" name="opt">
+          <span><strong>B-2</strong> Opción C <em>(Lista 2)</em></span>
+        </label>
+        <label class="simple-radio">
+          <input type="radio" name="opt">
+          <span><strong>C-1</strong> Opción D <em>(fuera de lista)</em></span>
+        </label>
+        <label class="simple-radio">
+          <input type="radio" name="opt">
+          <span><strong>D-1</strong> Opción E <em>(fuera de lista)</em></span>
+        </label>
+        <label class="simple-radio">
+          <input type="radio" name="opt">
+          <span><strong>E-1</strong> Opción F <em>(fuera de lista)</em></span>
+        </label>
+        <label class="simple-radio">
+          <input type="radio" name="opt">
+          <span>Voto en blanco</span>
+        </label>
+        <label class="simple-radio">
+          <input type="radio" name="opt">
+          <span>Voto nulo</span>
+        </label>
+
+        <button class="btn-vote">Votar</button>
+      </div>
+    </section>
+
+    <!-- ============ VIEW 3: ENCRIPTANDO ============ -->
+    <section class="view" id="v3">
+      <div class="vote-breadcrumb"><a href="#">UParticipa</a><span class="sep">»</span><strong>Votación 3 [Tipo de elección]</strong></div>
+      <h2 class="vote-title">Votación 3 [Tipo de elección] <span class="pill abierta-pill">Abierta</span></h2>
+      <div class="vote-dates">Desde el 11/05/2026 a las 06:00 hrs. hasta el 12/05/2026 a las 20:00 hrs.</div>
+
+      <div class="uc-banner warning">
+        <span>• Tu voto se está encriptando para mantenerlo en secreto. No cierre esta ventana.</span>
+        <button class="banner-close" disabled>✕</button>
+      </div>
+
+      <div class="uc-loading">
+        <span class="uc-spinner"></span>
+        <span class="uc-loading-text">Encriptando tu voto. Por favor espera un momento.</span>
+      </div>
+
+      <div style="margin-top:48px;border-top:1px solid var(--border);padding-top:28px;opacity:.45;">
+        <p style="font-size:13px;color:var(--subtext);margin:0 0 10px;font-style:italic;">— Estado tras recibir el voto:</p>
+        <div class="uc-banner success">
+          <span>• Su proceso de votación ha finalizado correctamente.</span>
+          <button class="banner-close">✕</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VIEW 4: URNA ELECTRÓNICA ============ -->
+    <section class="view" id="v4">
+      <div class="vote-breadcrumb"><a href="#">UParticipa</a><span class="sep">»</span><strong>Votación 3 [Tipo de elección]</strong></div>
+
+      <h2 class="vote-title">Votación 3 [Tipo de elección] <span class="results-status">Finalizada</span></h2>
+      <div class="vote-dates">Desde el 11/05/2026 a las 06:00 hrs. hasta el 12/05/2026 a las 20:00 hrs.</div>
+
+      <div class="vote-tabs">
+        <button class="vtab">Votar</button>
+        <button class="vtab active">Urna electrónica</button>
+        <button class="vtab">Resultados</button>
+      </div>
+
+      <div class="subtabs">
+        <span class="subtab active">Urna electrónica</span>
+        <a class="subtab" href="#">Estadísticas</a>
+        <a class="subtab" href="#">Verificación</a>
+      </div>
+
+      <div class="urna-panel">
+        <table class="urna">
+          <thead><tr><th>Código de Papeleta</th><th>Voto Encriptado</th></tr></thead>
+          <tbody>
+            <tr><td>X99p8gZi+kh4Yw3DM8aMqtBkn...</td><td>yuaTuv7Lk%AWRJo6s8f3Lp==</td></tr>
+            <tr><td>JNrYeyYCxI16kx7BWCzzdEqM4...</td><td>w2c9X7TR9zUkAVYTSqgY==</td></tr>
+            <tr><td>zfTHgN2eOl4WV5o2j9qBWNK1l...</td><td>y8tZX/3wKD3sa1XTYK0c==</td></tr>
+            <tr><td>7+L4Mr2TDb6sjzhRz1AC9qfA0...</td><td>q1ND8GHsZTm4cXl0c8M2==</td></tr>
+            <tr><td>EDgWTLcf38eU4sZou2L4eI2Khtt...</td><td>tpprV3M7F/VAJ132m9P==</td></tr>
+            <tr><td>BCvI8I97aliSart6wz4yAUUgIunCAlLi...</td><td>WbOnQNAUst9hIvL3kQ==</td></tr>
+            <tr><td>gRMpecTRH8N4fanZj1lRGleRsAaIt...</td><td>QSyrKnW0H1XH4mYbZ==</td></tr>
+            <tr><td>cTrZjjN+CnjKsTY3RfyJ8DfYAEaXTzM...</td><td>fU67ZUjLBbRecjAbA9==</td></tr>
+          </tbody>
+        </table>
+
+        <div class="pagination">
+          <span>Página 1 de 6 (mostrando 1–50 de 287 registrados)</span>
+          <div class="nav-btn">
+            <button disabled>‹ Anterior</button>
+            <button>Siguiente ›</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ VIEW 5: RESULTADOS ============ -->
+    <section class="view" id="v5">
+      <div class="vote-breadcrumb"><a href="#">UParticipa</a><span class="sep">»</span><strong>Votación 3 [Tipo de elección]</strong></div>
+
+      <h2 class="vote-title">Votación 3 [Tipo de elección] <span class="results-status">Finalizada</span></h2>
+      <div class="vote-dates">Desde el 11/05/2026 a las 06:00 hrs. hasta el 12/05/2026 a las 20:00 hrs.</div>
+
+      <div class="vote-tabs">
+        <button class="vtab">Votar</button>
+        <button class="vtab">Urna electrónica</button>
+        <button class="vtab active">Resultados</button>
+      </div>
+
+      <div class="sort-toggle">
+        <label class="toggle-radio"><input type="radio" name="sort" checked><span>Ordenados por votos</span></label>
+        <label class="toggle-radio"><input type="radio" name="sort"><span>Como se mostraron al votar</span></label>
+      </div>
+
+      <p class="results-desc">Seleccionar la opción de su preferencia. Las opciones pueden conformar listas entre sí o competir de forma independiente.</p>
+
+      <div class="candidate-item">
+        <div class="cand-label">• <strong>B-1 Opción B</strong> (Lista 2) <span class="cand-count">651</span></div>
+        <div class="candidate-bar"><div class="fill" style="width:37.2%"></div><span class="pct">37.2%</span></div>
+      </div>
+      <div class="candidate-item">
+        <div class="cand-label">• <strong>A-1 Opción A</strong> (fuera de lista) <span class="cand-count">298</span></div>
+        <div class="candidate-bar"><div class="fill" style="width:17%"></div><span class="pct">17%</span></div>
+      </div>
+      <div class="candidate-item">
+        <div class="cand-label">• <strong>B-2 Opción C</strong> (Lista 2) <span class="cand-count">270</span></div>
+        <div class="candidate-bar"><div class="fill" style="width:15.4%"></div><span class="pct">15.4%</span></div>
+      </div>
+      <div class="candidate-item">
+        <div class="cand-label">• <strong>C-1 Opción D</strong> (fuera de lista) <span class="cand-count">215</span></div>
+        <div class="candidate-bar"><div class="fill" style="width:12.3%"></div><span class="pct">12.3%</span></div>
+      </div>
+      <div class="candidate-item">
+        <div class="cand-label">• <strong>D-1 Opción E</strong> (fuera de lista) <span class="cand-count">180</span></div>
+        <div class="candidate-bar"><div class="fill" style="width:10.3%"></div><span class="pct">10.3%</span></div>
+      </div>
+      <div class="candidate-item">
+        <div class="cand-label">• <strong>E-1 Opción F</strong> (fuera de lista) <span class="cand-count">135</span></div>
+        <div class="candidate-bar"><div class="fill" style="width:7.7%"></div><span class="pct">7.7%</span></div>
+      </div>
+
+      <div class="results-summary">
+        <div class="summary-stats">
+          <div class="srow"><span class="slabel">Claustro</span><span class="svalue">6.264</span></div>
+          <div class="srow"><span class="slabel">Respuestas Recibidas</span><span class="svalue">2.587<small>41.3%</small></span></div>
+          <div class="srow"><span class="slabel">Blancos</span><span class="svalue">523<small>8.3%</small></span></div>
+          <div class="srow"><span class="slabel">Nulos</span><span class="svalue">315<small>5%</small></span></div>
+        </div>
+        <div class="summary-donut">
+          <div class="donut2"></div>
+          <div class="donut-legend">
+            <div><span class="dot green"></span>Respuestas</div>
+            <div><span class="dot pink"></span>Sin Responder</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+  const buttons = document.querySelectorAll('#preview-switcher button');
+  buttons.forEach(btn => btn.addEventListener('click', () => {
+    buttons.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById(btn.dataset.view).classList.add('active');
+  }));
+</script>
+
+</body>
+</html>
