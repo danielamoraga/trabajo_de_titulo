@@ -257,50 +257,25 @@
 var MOCK = {
   usuario: { pers_id: "00000000-0", theme: "focus", lang: "es" },
   elecciones: [
-    { id: "e-14", nombre: "[Elecciones FECh 2026] Consejerías de la Facultad de Ciencias Físicas y Matemáticas",
-      estado: "en_curso", ya_voto: true,
-      desde: "11/05/2026 a las 06:00 hrs.", hasta: "12/05/2026 a las 20:00 hrs.",
-      claustro: 6264, respuestas: 2587, participacion: 41.3 },
-    { id: "e-13", nombre: "[Elecciones FECh 2026] Mesa Directiva",
-      estado: "en_curso", ya_voto: false,
-      desde: "11/05/2026 a las 06:00 hrs.", hasta: "12/05/2026 a las 20:00 hrs.",
-      claustro: 37577, respuestas: 18446, participacion: 49.1 },
-    { id: "e-12", nombre: "[Consulta Estudiantil] Presupuesto participativo 2026",
-      estado: "en_pausa", ya_voto: false,
-      desde: "20/06/2026 a las 08:00 hrs.", hasta: "30/06/2026 a las 18:00 hrs.",
+    { id: "e-01", nombre: "Votación 1 [Tipo de elección]", tipo: "eleccion",
+      estado: "en_curso", ya_voto: null,
+      desde: "11/05/2026", hasta: "12/05/2026 a las 20:00 hrs.",
+      claustro: 37577, respuestas: 0, participacion: 0 },
+
+    { id: "e-02", nombre: "Votación 2 [Tipo de consulta]", tipo: "consulta",
+      estado: "en_curso", ya_voto: null,
+      desde: "20/06/2026", hasta: "30/06/2026 a las 18:00 hrs.",
       claustro: 41025, respuestas: 0, participacion: 0 },
-    { id: "e-11", nombre: "[Plebiscito Estatutario FECh 2025] Facultad de Ciencias Físicas y Matemáticas",
-      estado: "finalizada", ya_voto: false,
-      desde: "29/10/2025 a las 06:00 hrs.", hasta: "31/10/2025 a las 18:00 hrs.",
-      claustro: 6583, respuestas: 1364, participacion: 20.7 },
-    { id: "e-10", nombre: "[Elecciones Congreso Extraordinario FECh 2024] Congresales de la Facultad de Ciencias Físicas y Matemáticas",
-      estado: "finalizada", ya_voto: false,
-      desde: "21/10/2024 a las 06:00 hrs.", hasta: "22/10/2024 a las 20:00 hrs.",
-      claustro: 6658, respuestas: 117, participacion: 1.8 },
-    { id: "e-09", nombre: "[Elecciones FECh 2024] Mesa Directiva",
+
+    { id: "e-03", nombre: "Votación 3 [Tipo de elección]", tipo: "eleccion",
       estado: "finalizada", ya_voto: true,
-      desde: "22/05/2024 a las 06:00 hrs.", hasta: "23/05/2024 a las 20:00 hrs.",
-      claustro: 36824, respuestas: 3321, participacion: 9.0 },
-    { id: "e-08", nombre: "[Elecciones FECh 2024] Consejerías de la Facultad de Ciencias Físicas y Matemáticas",
-      estado: "finalizada", ya_voto: true,
-      desde: "07/05/2024 a las 06:00 hrs.", hasta: "08/05/2024 a las 20:00 hrs.",
-      claustro: 6570, respuestas: 1573, participacion: 23.9 },
-    { id: "e-07", nombre: "[Elecciones FECh 2023] Mesa Directiva",
+      desde: "11/05/2026", hasta: "12/05/2026 a las 20:00 hrs.",
+      claustro: 6264, respuestas: 2587, participacion: 41.3 },
+
+    { id: "e-04", nombre: "Votación 4 [Tipo de plebiscito]", tipo: "plebiscito",
       estado: "finalizada", ya_voto: false,
-      desde: "28/08/2023 a las 06:00 hrs.", hasta: "29/08/2023 a las 20:00 hrs.",
-      claustro: 37622, respuestas: 9841, participacion: 26.2 },
-    { id: "e-06", nombre: "Consulta Estudiantil Constituyente",
-      estado: "finalizada", ya_voto: false,
-      desde: "20/07/2022 a las 09:00 hrs.", hasta: "22/07/2022 a las 22:00 hrs.",
-      claustro: 33655, respuestas: 2720, participacion: 8.1 },
-    { id: "e-05", nombre: "Ratificación de acuerdo asamblea UChile",
-      estado: "finalizada", ya_voto: false,
-      desde: "13/12/2021 a las 08:00 hrs.", hasta: "14/12/2021 a las 23:59 hrs.",
-      claustro: 41591, respuestas: 3740, participacion: 9.0 },
-    { id: "e-04", nombre: "Elección de representantes estudiantiles ante el Senado Universitario 2020-2022",
-      estado: "finalizada", ya_voto: false,
-      desde: "19/08/2020 a las 09:00 hrs.", hasta: "20/08/2020 a las 18:00 hrs.",
-      claustro: 41025, respuestas: 3611, participacion: 8.8 }
+      desde: "29/10/2025", hasta: "31/10/2025 a las 18:00 hrs.",
+      claustro: 6583, respuestas: 1364, participacion: 20.7 }
   ]
 };
 
@@ -316,11 +291,28 @@ function esc(s) {
   });
 }
 
-function pill(v) {
-  return v
+function pill(yaVoto) {
+  // ya_voto === null  → no se muestra pill.
+  // Convención tomada del mockup: en elecciones abiertas no se expone
+  // si la persona ya votó; el estado de respuesta solo aparece una vez
+  // cerrado el proceso.
+  //
+  // TENSIÓN A RESOLVER: el RF11 pide avisar a quien ya votó y entra de
+  // nuevo a la papeleta. Si el listado no lo muestra, ese aviso llega
+  // recién al abrir la cabina. Hay que decidir si eso es deliberado
+  // (no señalizar participación mientras la urna está abierta) o si
+  // conviene mostrar la pill también en curso.
+  if (yaVoto === null || yaVoto === undefined) return "";
+  return yaVoto
     ? '<div class="pill ok"><i class="fa-solid fa-check"></i> Respondida</div>'
     : '<div class="pill wrong"><i class="fa-solid fa-x"></i> Sin Responder</div>';
 }
+// Evita dejar un espacio suelto cuando no hay pill.
+function pillSufijo(yaVoto) {
+  var p = pill(yaVoto);
+  return p ? " " + p : "";
+}
+
 
 function porcentaje(r, p) {
   return '<div class="porcentaje" style="width: 100%; ">' +
@@ -342,7 +334,7 @@ function fila(e, i) {
   return '<tr class="' + (i % 2 ? "even" : "odd") + '">' +
     '<td class="number">' + (i + 1) + '</td>' +
     '<td class="string responsive-main">' +
-      '<h1>' + nombre + ' ' + pill(e.ya_voto) + '</h1>' +
+      '<h1>' + nombre + pillSufijo(e.ya_voto) + '</h1>' +
       '<h2>Desde el ' + esc(e.desde) + ' hasta el ' + esc(e.hasta) + '</h2>' +
       '<div class="responsive-data only-movil no-print">' +
         '<div class="responsive-row "><span class="responsive-label">Claustro</span> ' + fmt(e.claustro) + '</div>' +
