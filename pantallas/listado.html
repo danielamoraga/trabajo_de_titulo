@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UParticipa</title>
+
+<!--
+  PANTALLA 1 — LISTADO DE ELECCIONES
+  ==================================
+  Cubre RF02 y RF02.1 (distinguir En Curso / Finalizada / En Pausa).
+
+  Estructura tomada del DOM real de /m/fcfm_votaciones/votaciones.
+  El CSS es 100% institucional: la sección CSS_PROPIO al final está
+  vacía a propósito. Solo se agrega ahí lo que la sonda demuestre
+  que falta, y con un comentario que diga por qué.
+
+  Dev:  python3 -m http.server 8000
+        http://localhost:8000/listado.html?theme=focus-dark
+-->
+
+<link id="uc-css" rel="stylesheet" media="all" href="" />
+<script type="text/javascript" src="https://ucampus.uchile.cl/b/externos/resizer.js"></script>
+
+<style id="css-propio">
+/* ===================================================================
+   CSS_PROPIO — vacío a propósito.
+   Cada regla que se agregue acá necesita un comentario que indique:
+     (a) qué componente institucional se intentó usar primero
+     (b) por qué no alcanzó
+   Si no puedes escribir ese comentario, la regla no va.
+   =================================================================== */
+</style>
+</head>
+<body class="logeado">
+
+<!-- Los wrappers #navigation y #body replican el anidamiento real de
+     UCampus. Si la hoja base scopea reglas bajo estos selectores, sin
+     ellos el contenido queda sin estilo. La clase de tema en #body la
+     inyecta el script. -->
+<div id="navigation">
+
+<h1 class="modulo">UParticipa</h1>
+
+<ul id="navbar">
+  <li>UParticipa</li>
+</ul>
+
+<!-- Contenedor de mensajes de la plataforma. Reservado para RF07. -->
+<div id="mensajes" role="status"></div>
+
+<div id="body" role="main" class="fcfm uparticipa">
+
+<table id="votaciones">
+<colgroup>
+  <col class="col0 number">
+  <col class="col1 string responsive-main">
+  <col class="col2 number responsive no-movil">
+  <col class="col3 center">
+  <col class="col4 string center">
+</colgroup>
+<thead class="sticky">
+<tr class="even">
+  <th class="number">Nº</th>
+  <th class="string responsive-main">Votación</th>
+  <th class="number responsive no-movil">Claustro</th>
+  <th class="center">Respuestas</th>
+  <th class="string center">Estado</th>
+</tr>
+</thead>
+<tbody id="filas">
+  <tr class="odd"><td colspan="5">Cargando elecciones…</td></tr>
+</tbody>
+</table>
+
+</div><!-- /#body -->
+</div><!-- /#navigation -->
+
+<script>
+// ===================================================================
+// MOCK DEL BACKEND
+// Este objeto es simultáneamente el mock del front y la especificación
+// del endpoint que hay que implementar en el backend de UParticipa.
+// Cuando el endpoint exista, se reemplaza cargarElecciones() por un
+// fetch y no se toca nada más.
+//
+// La lista llega YA FILTRADA por el servidor (filtrado anticipado):
+// el front no decide habilitación.
+// ===================================================================
+var MOCK = {
+  usuario: { pers_id: "00000000-0", theme: "focus", lang: "es" },
+  elecciones: [
+    { id: "e-01", nombre: "Votación 1 [Tipo de elección]", tipo: "eleccion",
+      estado: "en_curso", ya_voto: null,
+      desde: "11/05/2026", hasta: "12/05/2026 a las 20:00 hrs.",
+      claustro: 37577, respuestas: 0, participacion: 0 },
+
+    { id: "e-02", nombre: "Votación 2 [Tipo de consulta]", tipo: "consulta",
+      estado: "en_curso", ya_voto: null,
+      desde: "20/06/2026", hasta: "30/06/2026 a las 18:00 hrs.",
+      claustro: 41025, respuestas: 0, participacion: 0 },
+
+    { id: "e-03", nombre: "Votación 3 [Tipo de elección]", tipo: "eleccion",
+      estado: "finalizada", ya_voto: true,
+      desde: "11/05/2026", hasta: "12/05/2026 a las 20:00 hrs.",
+      claustro: 6264, respuestas: 2587, participacion: 41.3 },
+
+    { id: "e-04", nombre: "Votación 4 [Tipo de plebiscito]", tipo: "plebiscito",
+      estado: "finalizada", ya_voto: false,
+      desde: "29/10/2025", hasta: "31/10/2025 a las 18:00 hrs.",
+      claustro: 6583, respuestas: 1364, participacion: 20.7 }
+  ]
+};
+
+// ===================================================================
+// RENDER
+// ===================================================================
+
+// Etiqueta visible por estado (RF02.1).
+var ESTADOS = {
+  en_curso:   "Abierta",
+  finalizada: "Finalizada",
+  en_pausa:   "En pausa"
+};
+
+// Umbrales de color de la barra de participación.
+// Observados en el DOM de fcfm_votaciones: wrong bajo ~50%, warn
+// entre ~66% y ~75%, ok sobre ~78%. Son inferidos, no documentados.
+//
+// PENDIENTE DE DECISIÓN: ¿tiene sentido semáforo de participación en
+// UParticipa? Un rojo en una elección con 20% de participación es un
+// juicio editorial sobre el proceso, no un dato. Replicarlo da
+// coherencia visual; omitirlo evita emitir ese juicio.
+// Por ahora se replica para no divergir de la plataforma.
+function claseBarra(pct) {
+  if (pct >= 78) return "ok";
+  if (pct >= 50) return "warn";
+  return "wrong";
+}
+
+function fmt(n) {
+  return n.toLocaleString("es-CL");
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+  });
+}
+
+// Pill de "Respondida" / "Sin Responder".
+// Estructura y clases tomadas del DOM real: div.pill + ok|wrong, con
+// icono FontAwesome. Si los iconos no renderizan, FA no viene en la
+// hoja base y hay que decidir qué hacer (ver nota al final).
+function pill(yaVoto) {
+  // ya_voto === null  → no se muestra pill.
+  // Convención tomada del mockup: en elecciones abiertas no se expone
+  // si la persona ya votó; el estado de respuesta solo aparece una vez
+  // cerrado el proceso.
+  //
+  // TENSIÓN A RESOLVER: el RF11 pide avisar a quien ya votó y entra de
+  // nuevo a la papeleta. Si el listado no lo muestra, ese aviso llega
+  // recién al abrir la cabina. Hay que decidir si eso es deliberado
+  // (no señalizar participación mientras la urna está abierta) o si
+  // conviene mostrar la pill también en curso.
+  if (yaVoto === null || yaVoto === undefined) return "";
+  return yaVoto
+    ? '<div class="pill ok"><i class="fa-solid fa-check"></i> Respondida</div>'
+    : '<div class="pill wrong"><i class="fa-solid fa-x"></i> Sin Responder</div>';
+}
+// Evita dejar un espacio suelto cuando no hay pill.
+function pillSufijo(yaVoto) {
+  var p = pill(yaVoto);
+  return p ? " " + p : "";
+}
+
+
+// Barra de participación. Orden de nodos según el DOM real:
+// span(valor) → span.tooltip(pct) → div.inner > div.bar
+function porcentaje(respuestas, pct) {
+  return '' +
+    '<div class="porcentaje" style="width: 100%; ">' +
+      '<span>' + fmt(respuestas) + '</span>' +
+      '<span class="tooltip">' + Math.round(pct) + '%</span>' +
+      '<div class="inner">' +
+        '<div class="bar ' + claseBarra(pct) + '" style="width: ' + pct + '%"></div>' +
+      '</div>' +
+    '</div>';
+}
+
+// El destino depende del estado: votar si está en curso, ver
+// resultados si finalizó. En pausa no es navegable.
+// (RF03.1 — distinguir entrar a votar de ver resultados.)
+function destino(e) {
+  if (e.estado === "en_curso")   return "cabina.html?id=" + encodeURIComponent(e.id);
+  if (e.estado === "finalizada") return "resultados.html?id=" + encodeURIComponent(e.id);
+  return null;
+}
+
+function fila(e, i) {
+  var url = destino(e);
+  var nombre = url
+    ? '<a href="' + url + '">' + esc(e.nombre) + '</a>'
+    : esc(e.nombre);
+
+  return '' +
+  '<tr class="' + (i % 2 ? "even" : "odd") + '">' +
+    '<td class="number">' + (i + 1) + '</td>' +
+    '<td class="string responsive-main">' +
+      '<h1>' + nombre + pillSufijo(e.ya_voto) + '</h1>' +
+      '<h2>Desde el ' + esc(e.desde) + ' hasta el ' + esc(e.hasta) + '</h2>' +
+      // Patrón responsive de UCampus: el dato de la columna oculta en
+      // móvil se duplica acá dentro. No son media queries propias.
+      '<div class="responsive-data only-movil no-print">' +
+        '<div class="responsive-row ">' +
+          '<span class="responsive-label">Claustro</span> ' + fmt(e.claustro) +
+        '</div>' +
+      '</div>' +
+    '</td>' +
+    '<td class="number responsive no-movil">' + fmt(e.claustro) + '</td>' +
+    '<td class="center">' + porcentaje(e.respuestas, e.participacion) + '</td>' +
+    '<td class="string center">' + ESTADOS[e.estado] + '</td>' +
+  '</tr>';
+}
+
+function render(elecciones) {
+  var tbody = document.getElementById("filas");
+
+  if (!elecciones.length) {
+    // Estado vacío: el usuario está autenticado pero no tiene
+    // elecciones habilitadas. Caso real y frecuente.
+    tbody.innerHTML =
+      '<tr class="odd"><td colspan="5">' +
+      'No hay elecciones en curso en este momento.' +
+      '</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = elecciones.map(fila).join("");
+}
+
+// Reemplazar por fetch al endpoint cuando exista.
+function cargarElecciones() {
+  return Promise.resolve(MOCK.elecciones);
+}
+
+// ===================================================================
+// BOOTSTRAP — solo desarrollo
+// En producción la URL del CSS viene en el campo "css" del ticket y
+// se inyecta server-side. El patrón de la URL (theme + versión) se
+// hardcodea acá únicamente para poder probar los cuatro temas.
+// ===================================================================
+(function () {
+  var VERSION = "34705";
+  var TEMAS = ["focus", "focus-dark", "classic", "classic-dark"];
+
+  var params = new URLSearchParams(location.search);
+  var tema = params.get("theme");
+  if (TEMAS.indexOf(tema) === -1) tema = "focus";
+
+  document.getElementById("uc-css").href = params.get("css") ||
+    "https://ucampus.uchile.cl/d/css/" + tema + ".style_v" + VERSION + ".css";
+
+  var body = document.getElementById("body");
+  TEMAS.forEach(function (t) { body.classList.remove(t); });
+  body.classList.add(tema);
+
+  // Selector de temas para dev. Sin estilos propios.
+  var p = document.createElement("p");
+  p.appendChild(document.createTextNode("[dev] Tema: "));
+  TEMAS.forEach(function (t, i) {
+    if (i) p.appendChild(document.createTextNode(" · "));
+    if (t === tema) {
+      var s = document.createElement("strong");
+      s.textContent = t;
+      p.appendChild(s);
+    } else {
+      var a = document.createElement("a");
+      a.href = "?theme=" + t;
+      a.textContent = t;
+      p.appendChild(a);
+    }
+  });
+  var nav = document.getElementById("navigation");
+  nav.insertBefore(p, nav.firstChild);
+
+  cargarElecciones().then(render);
+})();
+</script>
+
+</body>
+</html>

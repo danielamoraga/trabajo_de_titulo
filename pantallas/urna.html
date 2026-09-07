@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es" class="js flexbox flexboxlegacy canvas canvastext no-touch geolocation postmessage indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers no-applicationcache svg inlinesvg smil svgclippaths">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UParticipa</title>
+
+<!--
+  MOCK — URNA ELECTRÓNICA
+  =======================
+  Cubre RF10 (acceso a la urna electrónica) y RNF11 (paginación para
+  mantener las requests livianas).
+
+  El contenido y la paginación siguen la urna real de UParticipa
+  (Previo/Siguiente más conteo, código de papeleta completo, acción de
+  descarga por fila). La estructura de tabla es la de UCampus.
+
+  SIN VERIFICAR: si UCampus tiene un componente de paginación propio.
+  El ul.paginar que se probó antes venía de dentro del iframe del
+  Repositorio Normativo, o sea del servicio externo de ADI, no de la
+  plataforma.
+
+  Las clases de modernizr en <html> vienen del DOM real. Algunas
+  reglas de UCampus pueden depender de .js o .no-touch.
+
+  Dev:
+    python3 -m http.server 8000
+    http://localhost:8000/urna.html
+    ?theme=focus | focus-dark | classic | classic-dark
+    &modcss=<modulo> → carga además una hoja de MÓDULO, para ubicar en
+                       qué hoja vive cada componente. "1" es atajo de
+                       fcfm_votaciones. Ej: uchile_votaciones.
+    &pagina=N   → salta a una página de la urna
+
+  EXPERIMENTO CLAVE: comparar con y sin &modcss.
+  Si .pill y .porcentaje solo se ven bien con una hoja de módulo
+  cargada, viven ahí y no en la hoja base — que es la única que el
+  servicio externo recibe del ticket.
+-->
+
+<link id="uc-css" rel="stylesheet" media="all" href="" type="text/css">
+<link id="uc-css-modulo" rel="stylesheet" media="all" href="" type="text/css">
+
+<style id="css-propio">
+/* ===================================================================
+   CSS_PROPIO — vacío a propósito.
+   Toda regla acá necesita un comentario que diga qué componente
+   institucional se intentó primero y por qué no alcanzó.
+   =================================================================== */
+</style>
+</head>
+<body class="logeado" data-dev="logeado">
+
+<div id="header-content-wrapper">
+
+<h1 id="header" role="heading"><a href="#"><span>Ucampus Uchile :: </span></a></h1>
+
+<h2 id="titulo">Ucampus Uchile</h2>
+
+<a id="toggler" href="#" aria-label="Abrir y Cerrar el Menú"></a>
+
+<div id="content-wrapper">
+
+<div id="menu">
+
+<ul id="contenedor_opciones">
+
+  <li class="pwa only-movil">
+    <a href="#" class="permalink"><i class="fa-regular fa-share-nodes"></i> <span class="tooltip">Compartir</span></a>
+    <a href="#"><i class="fa-regular fa-rotate-right"></i> <span class="tooltip">Recargar</span></a>
+  </li>
+
+  <li id="widget_perfil" class="usuario">
+    <a class="perfil" href="#">
+      <h1><img src="https://ucampus.uchile.cl/d/images/servicios/defecto_v34708.png" class="photo foto chica" alt="Foto de persona"> Usuario Votante</h1>
+    </a>
+  </li>
+
+  <li class="contact">
+    <a href="#" class="contactar"><span>Contacto</span></a>
+  </li>
+
+  <li class="logout">
+    <a href="#" class="salir"><span>Salir</span></a>
+  </li>
+
+</ul>
+
+<div id="modulos" class=" ">
+
+  <div id="favoritos" class="pinned">
+    <h1>Favoritos</h1>
+    <ul id="favs">
+      <li class="fcfm_bia ">
+        <a href="#"><h1><img src="https://ucampus.uchile.cl/d/images/servicios/bia_v34708.svg" alt="" class="icono"> Boletines - FCFM</h1></a>
+      </li>
+      <li class="fcfm_ia ">
+        <a href="#"><h1><img src="https://ucampus.uchile.cl/d/images/servicios/defecto_v34708.png" alt="" class="icono"> Inscripción Académica - FCFM</h1></a>
+      </li>
+      <li class="fcfm_titulacion2 ">
+        <a href="#"><h1><img src="https://ucampus.uchile.cl/d/images/servicios/defecto_v34708.png" alt="" class="icono"> Títulos y Grados - FCFM</h1></a>
+      </li>
+      <!--
+        El icono del módulo NO lo controla el servicio externo: el menú
+        lateral lo renderiza UCampus. En producción hay que entregarle
+        el SVG al equipo de UCampus como parte del registro del módulo.
+        Esto es requisito operativo, no de código.
+      -->
+      <li class="uparticipa sel">
+        <a href="#"><h1><img src="media/uparticipa.png" alt="" class="icono"> UParticipa</h1></a>
+      </li>
+      <li class="uchile_votaciones ">
+        <a href="#"><h1><img src="https://ucampus.uchile.cl/d/images/servicios/defecto_v34708.png" alt="" class="icono"> Votaciones</h1></a>
+      </li>
+      <li class="fcfm_votaciones ">
+        <a href="#"><h1><img src="https://ucampus.uchile.cl/d/images/servicios/votaciones_v34708.svg" alt="" class="icono"> Votaciones - FCFM</h1></a>
+      </li>
+    </ul>
+  </div>
+
+  <div id="servicios" class="pinned active">
+    <h1>Servicios</h1>
+    <ul>
+      <li id="forms" class=" forms"><a href="#">Formularios</a></li>
+      <li id="visor_repositorio_normativo" class=" visor_repositorio_normativo"><a href="#">Repositorio Normativo Contraloría Universitaria</a></li>
+      <li id="uparticipa" class="sel uparticipa"><a href="#">UParticipa</a></li>
+      <li id="uchile_votaciones" class=" uchile_votaciones"><a href="#">Votaciones</a></li>
+      <li id="workflow" class=" workflow"><a href="#">Workflow</a></li>
+    </ul>
+  </div>
+
+  <div id="fcfm" class="bloque active">
+    <h1><a href="#" class="toggle" data-bloque="fcfm">FCFM</a></h1>
+    <ul>
+      <li id="fcfm_bia" class=" fcfm_bia"><a href="#">Boletines</a></li>
+      <li id="fcfm_bolsa_trabajo" class=" fcfm_bolsa_trabajo"><a href="#">Bolsa de Empleos</a></li>
+      <li id="fcfm_catalogo" class=" fcfm_catalogo"><a href="#">Catálogo de Cursos</a></li>
+      <li id="fcfm_certificados2" class=" fcfm_certificados2"><a href="#">Certificados</a></li>
+      <li id="fcfm_ext_certificados" class=" fcfm_ext_certificados"><a href="#">Certificados Complementarios</a></li>
+      <li id="concursos" class=" concursos"><a href="#">Concursos Estudiantiles</a></li>
+      <li id="fcfm_actas_consejo_escuela" class=" fcfm_actas_consejo_escuela"><a href="#">Consejos de Escuela</a></li>
+      <li id="fcfm_actas_consejo" class=" fcfm_actas_consejo"><a href="#">Consejos de Facultad</a></li>
+      <li id="fcfm_encuestas_acreditacion" class=" fcfm_encuestas_acreditacion"><a href="#">Encuestas Acreditación</a></li>
+      <li id="fcfm_encuestas" class=" fcfm_encuestas"><a href="#">Encuestas Docentes</a></li>
+      <li id="fcfm_eventos" class=" fcfm_eventos"><a href="#">Eventos</a></li>
+      <li id="fcfm_formulario_visitas" class=" fcfm_formulario_visitas"><a href="#">Formulario Visitas</a></li>
+      <li id="fcfm_grupos_organizados" class=" fcfm_grupos_organizados"><a href="#">Grupos Organizados</a></li>
+      <li id="fcfm_ia" class=" fcfm_ia"><a href="#">Inscripción Académica</a></li>
+      <li id="fcfm_memorias" class=" fcfm_memorias"><a href="#">Memorias y Trabajos de Título</a></li>
+      <li id="fcfm_intercambio" class=" fcfm_intercambio"><a href="#">Movilidad Internacional</a></li>
+      <li id="fcfm_postulaciones" class=" fcfm_postulaciones"><a href="#">Postulaciones Docentes</a></li>
+      <li id="fcfm_practicas" class=" fcfm_practicas"><a href="#">Prácticas</a></li>
+      <li id="fcfm_programas_cursos" class=" fcfm_programas_cursos"><a href="#">Programas de Cursos</a></li>
+      <li id="fcfm_reservas" class=" fcfm_reservas"><a href="#">Reserva de Espacios</a></li>
+      <li id="fcfm_semestre_verano" class=" fcfm_semestre_verano"><a href="#">Semestre de Verano</a></li>
+      <li id="fcfm_titulacion2" class=" fcfm_titulacion2"><a href="#">Títulos y Grados</a></li>
+      <li id="fcfm_unidades_becarias" class=" fcfm_unidades_becarias"><a href="#">Unidades Becarias</a></li>
+      <li id="fcfm_votaciones" class=" fcfm_votaciones"><a href="#">Votaciones</a></li>
+    </ul>
+  </div>
+
+  <div id="otros_catalogos" class="bloque ">
+    <h1><a href="#" class="toggle" data-bloque="otros_catalogos">Otros Catálogos</a></h1>
+    <ul>
+      <li id="artes_catalogo" class=" artes_catalogo"><a href="#">Artes</a></li>
+      <li id="bachillerato_catalogo" class=" bachillerato_catalogo"><a href="#">Bachillerato</a></li>
+      <li id="ciencias_catalogo" class=" ciencias_catalogo"><a href="#">Ciencias</a></li>
+      <li id="agronomia_catalogo" class=" agronomia_catalogo"><a href="#">Ciencias Agronómicas</a></li>
+      <li id="rrii_catalogo" class=" rrii_catalogo"><a href="#">DRI</a></li>
+      <li id="derecho_catalogo" class=" derecho_catalogo"><a href="#">Derecho</a></li>
+      <li id="facso_catalogo" class=" facso_catalogo"><a href="#">FACSO</a></li>
+      <li id="fau_catalogo" class=" fau_catalogo"><a href="#">FAU</a></li>
+      <li id="icei_catalogo" class=" icei_catalogo"><a href="#">FCEI</a></li>
+      <li id="filosofia_catalogo" class=" filosofia_catalogo"><a href="#">Filosofía</a></li>
+      <li id="forestal_catalogo" class=" forestal_catalogo"><a href="#">Forestal</a></li>
+      <li id="inap_catalogo" class=" inap_catalogo"><a href="#">Gobierno</a></li>
+      <li id="iei_catalogo" class=" iei_catalogo"><a href="#">IEI</a></li>
+      <li id="inta_catalogo" class=" inta_catalogo"><a href="#">INTA</a></li>
+      <li id="ie_catalogo" class=" ie_catalogo"><a href="#">Instituto de Educación</a></li>
+      <li id="medicina_catalogo" class=" medicina_catalogo"><a href="#">Medicina</a></li>
+      <li id="odontologia_catalogo" class=" odontologia_catalogo"><a href="#">Odontología</a></li>
+      <li id="faciqyf_catalogo" class=" faciqyf_catalogo"><a href="#">QyF</a></li>
+      <li id="veterinaria_catalogo" class=" veterinaria_catalogo"><a href="#">Veterinaria</a></li>
+    </ul>
+  </div>
+
+</div><!-- /#modulos -->
+</div><!-- /#menu -->
+
+<div id="navigation-wrapper">
+
+<div id="navigation" class="">
+
+<h1 class="modulo">UParticipa</h1>
+
+<ul id="navbar">
+  <li><a href="mock-completo.html">UParticipa</a></li>
+  <li>Votación 3 [Tipo de elección]</li>
+</ul>
+
+<div id="mensajes" role="status"></div>
+
+<!--
+  ============================================================
+  A PARTIR DE ACÁ EMPIEZA EL SERVICIO EXTERNO.
+  Todo lo de arriba y lo de abajo lo entrega UCampus.
+  Este es el único bloque que produce el módulo desarrollado.
+  ============================================================
+-->
+<div id="body" role="main" class="fcfm uparticipa focus">
+
+<!--
+  Elección finalizada: la pill va SIN modificador. Confirmado contra el
+  DOM real (<div class="pill ">Finalizada</div>), que se renderiza como
+  texto gris plano, tal como muestra la referencia visual.
+-->
+<div class="objeto">
+  <h1>
+    Votación 3 [Tipo de elección]
+    <div class="pill ">Finalizada</div>
+  </h1>
+  <h2>Desde el 11/05/2026 a las 06:00 hrs. hasta el 12/05/2026 a las 20:00 hrs.</h2>
+</div>
+
+<!-- Pestañas principales -->
+<ul class="modulo">
+  <li><a href="cabina.html">Votar</a></li>
+  <li class="sel"><a href="#">Urna electrónica</a></li>
+  <li><a href="#">Resultados</a></li>
+</ul>
+
+<!--
+  Subpestañas. La urna de UParticipa ofrece cinco (Urna electrónica /
+  Estadísticas / Eventos / Resultados / Verificación); acá quedan dos
+  fuera por decisión de diseño:
+    - "Resultados", porque ya es pestaña principal en la integración
+      con UCampus y se duplicaría.
+    - "Eventos", excluida deliberadamente del alcance del módulo.
+-->
+<ul class="submodulo">
+  <li class="sel"><a href="#">Urna electrónica</a></li>
+  <li><a href="#">Estadísticas</a></li>
+  <li><a href="#">Verificación</a></li>
+</ul>
+
+<div id="urna"></div>
+
+</div><!-- /#body — FIN DEL SERVICIO EXTERNO -->
+
+</div><!-- /#navigation -->
+
+<div id="footer" role="contentinfo">
+
+<ul>
+  <li class="conf theme"><a href="#" data-conf="theme"><i class="fa-regular fa-paint-roller"></i> Tema</a>
+    <ul class="themes">
+      <li class="sel" data-theme="focus"><a href="?theme=focus">Focus</a></li>
+      <li data-theme="focus-dark"><a href="?theme=focus-dark">Focus Dark</a></li>
+      <li data-theme="classic"><a href="?theme=classic">Claro</a></li>
+      <li data-theme="classic-dark"><a href="?theme=classic-dark">Oscuro</a></li>
+    </ul>
+  </li>
+  <li class="conf lang"><a href="#" data-conf="lang"><i class="fa-regular fa-language"></i> Idioma</a>
+    <ul class="langs">
+      <li class="sel"><a href="?lang=es">Español</a></li>
+      <li><a href="?lang=en">English</a></li>
+    </ul>
+  </li>
+</ul>
+
+<ul>
+  <li class="guia_telefonica"><a href="#">Guía Telefónica</a></li>
+  <li><a href="#">Políticas de Uso</a></li>
+  <li><a href="#">Privacidad</a></li>
+  <li><a href="#"><i class="fa-regular fa-universal-access"></i> Accesibilidad</a></li>
+  <li class="brand"><a href="#" id="ucampus" target="_blank"><span>Centro Tecnológico Ucampus</span></a></li>
+</ul>
+
+</div><!-- /#footer -->
+
+</div><!-- /#navigation-wrapper -->
+</div><!-- /#content-wrapper -->
+</div><!-- /#header-content-wrapper -->
+
+<script>
+// ===================================================================
+// URNA ELECTRÓNICA — RF10 / RNF11
+//
+// La urna es la pieza que hace verificable la elección: cualquiera
+// puede ver que su papeleta está ahí y que el conteo se hizo sobre
+// estos votos. De ahí que sea pública y completa, no una muestra.
+// ===================================================================
+
+var TOTAL = 287;        // registros en la urna
+var POR_PAGINA = 50;
+
+// El mock genera los registros de forma determinista para que la
+// paginación se comporte igual entre recargas.
+//
+// EN LA IMPLEMENTACIÓN REAL: la paginación es del SERVIDOR, no del
+// cliente. El RNF11 pide requests livianas, y traer 287 (o 40.000)
+// registros para mostrar 50 anula el objetivo. El endpoint recibe
+// pagina/por_pagina y devuelve solo el tramo más el total.
+function registro(n) {
+  var abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  // Math.imul evita que la multiplicación se salga del rango entero
+  // seguro de JS. Con un LCG ingenuo (x * 1103515245) el producto pasa
+  // 2^53, pierde precisión y la secuencia colapsa a un solo carácter.
+  function cadena(semilla, largo) {
+    var s = "", x = (semilla ^ 0x9e3779b9) >>> 0;
+    for (var i = 0; i < largo; i++) {
+      x ^= x << 13; x >>>= 0;
+      x ^= x >>> 17;
+      x ^= x << 5;  x >>>= 0;
+      s += abc[x % abc.length];
+    }
+    return s;
+  }
+  return {
+    papeleta: cadena(n * 7919, 43),
+    voto: cadena(n * 6271 + 13, 22) + "=="
+  };
+}
+
+function pagina(p) {
+  var desde = (p - 1) * POR_PAGINA;
+  var hasta = Math.min(desde + POR_PAGINA, TOTAL);
+  var filas = [];
+  for (var n = desde; n < hasta; n++) filas.push(registro(n));
+  return { filas: filas, desde: desde + 1, hasta: hasta };
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"]/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+  });
+}
+
+// El Código de Papeleta se muestra COMPLETO.
+//
+// Antes se truncaba con "..." siguiendo el mockup, y eso rompía la
+// verificabilidad: es justamente el código con el que una persona
+// comprueba que su voto está en la urna. La urna real de UParticipa lo
+// muestra entero (43 caracteres), así que el problema no existía.
+function render() {
+  var params = new URLSearchParams(location.search);
+  var total_paginas = Math.ceil(TOTAL / POR_PAGINA);
+
+  var p = parseInt(params.get("pagina"), 10);
+  if (!p || p < 1) p = 1;
+  if (p > total_paginas) p = total_paginas;
+
+  var datos = pagina(p);
+
+  // -----------------------------------------------------------------
+  // Tabla. Estructura de UCampus (table.detalle, colgroup, thead.sticky,
+  // filas odd/even) con el contenido de la urna de UParticipa.
+  //
+  // La segunda columna no es texto: en UParticipa es una acción por
+  // fila que lleva al voto encriptado. Acá se usa a.boton para que la
+  // acción se vea como una acción de UCampus y no como un dato.
+  // -----------------------------------------------------------------
+  var tabla =
+    '<table class="detalle">' +
+      '<colgroup>' +
+        '<col class="col0 string responsive-main">' +
+        '<col class="col1 center">' +
+      '</colgroup>' +
+      '<thead class="sticky">' +
+        '<tr class="even">' +
+          '<th class="string responsive-main">Código de Papeleta</th>' +
+          '<th class="center">Voto Encriptado</th>' +
+        '</tr>' +
+      '</thead>' +
+      '<tbody>' +
+        datos.filas.map(function (r, i) {
+          return '<tr class="' + (i % 2 ? "even" : "odd") + '">' +
+            '<td class="string responsive-main">' + esc(r.papeleta) +
+              // Patrón responsive de UCampus: el dato de la columna
+              // oculta en móvil se duplica dentro de .responsive-data.
+              '<div class="responsive-data only-movil no-print">' +
+                '<div class="responsive-row ">' +
+                  '<span class="responsive-label">Voto Encriptado</span> ' +
+                  '<a href="#">Descargar</a>' +
+                '</div>' +
+              '</div>' +
+            '</td>' +
+            '<td class="center">' +
+              '<a class="boton" href="#" title="Descargar el voto encriptado de esta papeleta">' +
+                'Descargar' +
+              '</a>' +
+            '</td>' +
+          '</tr>';
+        }).join("") +
+      '</tbody>' +
+    '</table>';
+
+  // -----------------------------------------------------------------
+  // Paginación al estilo de UParticipa: Previo / Siguiente más una
+  // línea con el conteo. Reemplaza el ul.paginar que se había usado
+  // antes: ese componente venía de dentro del iframe del Repositorio
+  // Normativo, o sea del servicio externo de ADI y no de UCampus, así
+  // que no era una convención institucional.
+  //
+  // Los botones deshabilitados van como <span class="boton">: a.boton
+  // es un <a> y un enlace no tiene estado disabled.
+  // -----------------------------------------------------------------
+  function url(destino) {
+    var q = new URLSearchParams(location.search);
+    q.set("pagina", destino);
+    return "?" + q.toString();
+  }
+
+  function boton(destino, texto, habilitado) {
+    return habilitado
+      ? '<a class="boton" href="' + url(destino) + '">' + texto + '</a>'
+      : '<span class="boton" aria-disabled="true">' + texto + '</span>';
+  }
+
+  var nav =
+    '<p>' +
+      boton(p - 1, "Previo", p > 1) + ' ' +
+      boton(p + 1, "Siguiente", p < total_paginas) +
+    '</p>' +
+    '<p>Página ' + p + ' de ' + total_paginas +
+      ' (Mostrando ' + datos.desde + '-' + datos.hasta +
+      ' de ' + TOTAL + ' resultados)</p>';
+
+  document.getElementById("urna").innerHTML = tabla + nav;
+}
+
+// CHROME — réplica del comportamiento de kernel.js
+// UCampus usa jQuery y su objeto kernel, que no están disponibles acá.
+// Esto reimplementa solo lo mínimo para que el mock sea navegable:
+// desplegar bloques del menú y abrir los submenús del footer.
+// ===================================================================
+(function () {
+  var params0 = new URLSearchParams(location.search);
+  var VERSION = params0.get("v") || "34708";
+  var TEMAS = ["focus", "focus-dark", "classic", "classic-dark"];
+
+  var tema = params0.get("theme");
+  if (TEMAS.indexOf(tema) === -1) tema = "focus";
+
+  var base = "https://ucampus.uchile.cl/d/css/";
+  document.getElementById("uc-css").href =
+    params0.get("css") || base + tema + ".style_v" + VERSION + ".css";
+
+  // Hoja de MÓDULO — solo para el experimento. El servicio externo
+  // real NO la recibe: el ticket entrega una sola URL de CSS.
+  //
+  // Acepta el nombre del módulo para poder ubicar en qué hoja vive cada
+  // componente:
+  //   ?modcss=1                          → fcfm_votaciones (atajo)
+  //   ?modcss=uchile_votaciones          → #votaciones, .pill, .porcentaje
+  //   ?modcss=visor_repositorio_normativo → .paginar
+  //
+  // Si un componente solo se ve bien con su hoja de módulo cargada,
+  // está fuera del alcance del servicio externo.
+  var modcss = document.getElementById("uc-css-modulo");
+  var mod = params0.get("modcss");
+  if (mod === "1") mod = "fcfm_votaciones";
+  if (mod) {
+    modcss.href = base + tema + "." + mod + "_v" + VERSION + ".css";
+  } else {
+    modcss.remove();
+  }
+
+  // Preservar el módulo al cambiar de tema (más abajo se usa "mod").
+
+  // El tema va también como clase en #body.
+  var body = document.getElementById("body");
+  TEMAS.forEach(function (t) { body.classList.remove(t); });
+  body.classList.add(tema);   // convive con "fcfm uparticipa"
+
+  // Marcar el tema activo en el footer.
+  document.querySelectorAll("#footer .themes li").forEach(function (li) {
+    li.classList.toggle("sel", li.dataset.theme === tema);
+  });
+
+  if (mod) {
+    document.querySelectorAll("#footer .themes a").forEach(function (a) {
+      a.href += "&modcss=" + encodeURIComponent(mod);
+    });
+  }
+
+  // Toggle de bloques del menú (kernel.menuToggle).
+  document.querySelectorAll("#menu .toggle").forEach(function (a) {
+    a.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      document.getElementById(a.dataset.bloque).classList.toggle("active");
+    });
+  });
+
+  // Submenús de tema e idioma en el footer.
+  document.querySelectorAll("#footer .conf > a").forEach(function (a) {
+    a.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      a.parentNode.classList.toggle("active");
+    });
+  });
+
+  // Toggle del menú (kernel.toggler). En el DOM real la clase "active"
+  // aparece simultáneamente en #toggler, #menu, #navigation-wrapper y
+  // #navigation, así que se alternan las cuatro juntas.
+  document.getElementById("toggler").addEventListener("click", function (ev) {
+    ev.preventDefault();
+    ["toggler", "menu", "navigation-wrapper", "navigation"].forEach(function (id) {
+      document.getElementById(id).classList.toggle("active");
+    });
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>
