@@ -1,168 +1,164 @@
-# Servicio Externo UParticipa — React + Vite + TypeScript
+# Backend mock — Servicio Externo UParticipa en UCampus
+
+Implementa el flujo del diagrama de secuencia con respuestas mockeadas.
+No hay criptografía, ni base de datos, ni padrón real: el objetivo es
+**fijar el contrato** para poder desarrollar el frontend en paralelo y
+tener algo concreto que discutir con el CLCERT sobre qué extender.
 
 ## Correr
 
-```bash
-# terminal 1 — backend
-cd ../backend && ./run.sh
+En Arch (y por lo tanto en Omarchy) el Python del sistema está marcado
+como *externally managed*, así que `pip install` directo falla incluso
+teniendo pip. Cualquiera de estas tres opciones sirve.
 
-# terminal 2 — frontend
-npm install
-npm run dev          # http://localhost:5173
+**Atajo:** `./run.sh` detecta qué hay disponible y usa la mejor
+opción, creando un `.venv` si no encuentra nada.
+
+### uv (recomendado)
+
+```bash
+sudo pacman -S uv
+uv run uvicorn main:app --port 8001 --reload
 ```
 
-Para entrar hay que pasar por el flujo de UCampus, que es lo que entrega
-la sesión:
+Resuelve las dependencias desde `pyproject.toml` en un entorno propio y
+cacheado. No toca el Python del sistema ni hay que activar nada.
+
+### venv
+
+`venv` ya viene en el paquete `python` de Arch.
 
 ```bash
-TICKET=$(curl -s -X POST 'http://127.0.0.1:8001/ucampus-fake/emitir-ticket?perfil=completo' | jq -r .ticket)
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --port 8001 --reload
+```
+
+Dentro del venv sí hay pip y sí deja instalar. Para salir, `deactivate`.
+
+### Paquetes del sistema
+
+```bash
+sudo pacman -S python-fastapi python-uvicorn python-httpx
+uvicorn main:app --port 8001 --reload
+```
+
+Evita el venv, pero las versiones son las que empaqueta Arch y quedan
+mezcladas con el sistema.
+
+---
+
+Documentación interactiva en <http://127.0.0.1:8001/docs>.
+
+Las pruebas recorren el flujo completo:
+
+```bash
+uv run python prueba.py          # con uv
+.venv/bin/python prueba.py       # con venv
+```
+
+Son 27 verificaciones. Ojo: corren contra un servidor con estado en
+memoria, así que hay que **reiniciar el servidor** entre corridas o los
+casos de "primer voto" fallan por contaminación.
+
+## Recorrer el flujo a mano
+
+```bash
+# Paso 4: UCampus emite un ticket
+TICKET=$(curl -s -X POST "http://127.0.0.1:8001/ucampus-fake/emitir-ticket?perfil=completo" | jq -r .ticket)
+
+# Pasos 4-8: entrada del Servicio Externo. Devuelve TEXTO PLANO.
 curl -s "http://127.0.0.1:8001/externo?ticket=$TICKET"
-# -> http://localhost:8000/index.html?sesion=XXXX
+# -> http://localhost:8000/mock-completo.html?sesion=XXXX
+
+# Con ese token, la API del módulo
+curl -s "http://127.0.0.1:8001/api/externo/elecciones?sesion=XXXX" | jq
 ```
 
-En desarrollo el puerto es 5173, así que hay que abrir
-`http://localhost:5173/?sesion=XXXX` con ese token.
+## Perfiles de prueba
 
-> El backend tiene `http://localhost:8000` en `ORIGENES_PERMITIDOS`.
-> Para usar `npm run dev` hay que agregar `http://localhost:5173`, o
-> servir el build en 8000 con `python3 servir_dist.py`.
-
-### Parámetros de desarrollo
-
-| Parámetro | Para qué |
+| Perfil | Para qué |
 |---|---|
-| `?sesion=` | Token de sesión. Sin él ninguna pantalla carga datos. |
-| `?theme=` | `focus`, `focus-dark`, `classic`, `classic-dark` |
-| `?chrome=0` | Muestra **solo** lo que produce el Servicio Externo |
-| `?v=34708` | Versión de assets de UCampus |
+| `completo` | Habilitado en las cuatro elecciones |
+| `parcial` | Habilitado en una: verifica el filtrado |
+| `sin_elecciones` | Autenticado sin elecciones: estado vacío del listado |
+| `sin_id_externo` | JSON sin `id_externo`: el error del paso 8 |
 
-`?chrome=0` es el importante para entender el alcance: todo lo demás
-—header, menú lateral, footer— lo renderiza UCampus por fuera del iframe.
+## Endpoints
 
-## Estructura
+### Flujo UCampus
 
-```
-index.html                plantilla (sin CSS: se inyecta en runtime)
-src/
-  main.tsx                monta el chrome y después React
-  api/
-    esquema.d.ts          GENERADO desde el OpenAPI — no editar
-    tipos.ts              alias legibles de esquema.d.ts
-    cliente.ts            cliente HTTP tipado
-    sesion.ts             token de sesión y construcción de rutas
-    votoPendiente.ts      papeleta entre cabina y encriptado (en memoria)
-  chrome/montar.ts        header/menú/footer — SOLO desarrollo
-  componentes/
-    ucampus.tsx           componentes de la plataforma
-    Avisos.tsx            #mensajes vía portal
-    useAvisos.ts          estado de avisos y mensajes del RF07.1
-  pantallas/              Listado, Cabina, Encriptado, Resultados
-```
+- `GET /externo?ticket=XXX` — paso 4. Valida el ticket contra UCampus,
+  extrae `id_externo`, crea la sesión y devuelve la URL de retorno.
 
-## Tipos generados desde el OpenAPI
+  **La respuesta es texto plano, no JSON.** La doc de UCampus define dos
+  respuestas posibles: una URL (y UCampus redirige) o un mensaje de error
+  (y UCampus lo muestra). Devolver JSON rompe la integración aunque el
+  contenido sea correcto.
 
-```bash
-npm run tipos      # con el backend corriendo en :8001
-```
+### API del módulo
 
-Los modelos Pydantic del backend producen el esquema OpenAPI, y de ahí
-salen los tipos de TypeScript. **El contrato lo verifica el compilador**:
-si el backend cambia un campo y el frontend no se adapta, `npm run build`
-falla. Eso importa porque el backend lo va a mantener el CLCERT.
+Todas requieren sesión, por cabecera `X-Sesion` o por `?sesion=`.
 
-## Sin CSS propio ni framework CSS
+- `GET /api/externo/elecciones` — listado ya filtrado por habilitación.
+- `GET /api/externo/eleccion/{id}` — detalle con preguntas y opciones.
+- `GET /api/externo/eleccion/{id}/urna?pagina=&por_pagina=` — urna paginada.
+- `POST /api/externo/eleccion/{id}/voto` — recibe el voto ya encriptado.
 
-El proyecto tiene **cero CSS**. Todos los componentes salen de la hoja
-institucional de UCampus, que se inyecta en runtime con la URL del tema
-del usuario (en producción, con el valor del campo `css` del ticket).
+## Decisiones que este mock materializa
 
-No se usa Tailwind ni Bulma a propósito:
+**El filtrado es del servidor.** `GET /elecciones` devuelve solo las
+elecciones habilitadas. Este endpoint no existe hoy en UParticipa: el
+filtrado ocurre al intentar entrar a una elección concreta. Es la
+extensión principal que hay que pedirle al backend real (D-003).
 
-- El *preflight* de Tailwind resetea `h1`, `h2`, `table`, `ul` y `form`,
-  que son exactamente los elementos que la hoja de UCampus redefine.
-  Cargar las dos es una pelea de especificidad y se pierden `div.objeto`,
-  `table.detalle`, `ul.modulo`.
-- Bulma es peor para este caso: es CSS global y opinado sobre `.button`,
-  `.table`, `.title`, `.navbar`, y colisiona de frente.
-- **El RNF02 es el argumento de fondo:** los colores de cualquier
-  framework son fijos, y el módulo tiene que adaptarse a los cuatro
-  temas. Eso solo funciona si los colores vienen de la hoja
-  institucional.
+**Las acciones las decide el servidor.** Cada elección trae un arreglo
+`acciones`. El frontend no deriva permisos del estado.
 
-Los únicos `style` en línea son los anchos de `div.porcentaje`, que en el
-DOM real de UCampus también van inline porque son datos, no estilo.
+**Toda ruta por elección revalida la habilitación.** No basta con que el
+listado haya filtrado: alguien puede llamar el endpoint con un id ajeno.
+Responde 404 y no 403 a propósito, porque un 403 confirmaría que la
+elección existe.
 
-## Tres restricciones del iframe que condicionan el código
+**El endpoint del voto no recibe la opción elegida.** Solo el voto ya
+encriptado. Si acá llegara un identificador de opción, el sistema
+perdería la propiedad que lo justifica (D-004).
 
-**`resizer.js` va como `<script src>` en el HTML, nunca bundleado.** Usa
-`u_width` sin declararla (global implícito); dentro de un módulo ES, que
-es `"use strict"`, lanza `ReferenceError` y se rompe el ajuste de altura
-(D-026).
+**El ticket es de un solo uso y tiene ventana de validez.** Se consume al
+validarlo, y se rechaza si el campo `time` del JSON está fuera de una
+tolerancia de 60 s. Un ticket queda en logs de servidor y en la cabecera
+`Referer`; sin esas dos medidas, uno filtrado sirve para abrir una sesión
+ajena.
 
-**Nada de portales a `document.body`.** El resizer mide hasta un iframe
-centinela que inyecta al final del `body`, así que lo que se monte ahí
-queda fuera de la medición. `Avisos.tsx` usa `createPortal` hacia
-`#mensajes`, que está **antes** del centinela y sí se mide.
+**La sesión va en la URL, no en cookie.** El diagrama dice "cookie de
+sesión", pero el servicio corre en un iframe de otro dominio: una cookie
+sería *third-party*, necesita `SameSite=None; Secure` y aun así Safari y
+Firefox pueden bloquearla, tumbando el flujo sin dar un error claro. El
+precedente de la plataforma va en la misma dirección: el Repositorio
+Normativo, que ya es un Servicio Externo en producción, recibe su sesión
+como `?_token=...` en la URL de retorno (D-027).
 
-**El `<link>` del CSS se inyecta en runtime**, porque su URL depende del
-tema y viene en el ticket. En producción el servidor puede inyectarlo
-directo en el HTML al validar el ticket, y ahorra un round-trip.
+**`id_externo` es opcional en el ticket.** La doc de UCampus lo marca así
+("corresponde al Pasaporte"). Si el módulo no lo tiene habilitado, el
+JSON llega sin él y no hay con qué identificar al votante en el padrón.
+No se usa `pers_id` (el RUT) como fallback: eso implicaría que el padrón
+de UParticipa esté indexado por RUT, que es otra decisión y otro dato
+sensible. Hay que confirmar con el equipo de UCampus que el Pasaporte
+quede habilitado para el módulo.
 
-## Probar
+## Lo que este mock NO hace, y en el real es esencial
 
-```bash
-npm run build
-python3 servir_dist.py 8000          # con fallback a index.html
-
-# en otra terminal, con una sesión en /tmp/sesion.txt
-node render.cjs                      # 39 verificaciones sobre el DOM
-```
-
-Dos parches del entorno de prueba, que no afectan al navegador:
-
-- **jsdom no ejecuta `<script type="module">`**, así que la prueba carga
-  un bundle IIFE generado con esbuild. `servir_dist.py` lo sirve cuando
-  la URL trae `?iife=1`, conservando la ruta para que React Router la
-  resuelva.
-- **jsdom no implementa `fetch`**, así que se inyecta el de Node en
-  `beforeParse`.
-
-Lo que jsdom **no** puede verificar es el estilo. Que los componentes
-sean los correctos está probado; que se *vean* bien en los cuatro temas
-requiere un navegador real.
-
-## Detalles de implementación que conviene conocer
-
-**La papeleta no toca disco ni URL.** Entre la cabina y el encriptado
-viaja por una variable de módulo (`votoPendiente.ts`). Un parámetro de
-query queda en el historial, en los logs y en el `Referer` (D-005); y
-`sessionStorage` lo persiste. Con navegación SPA el módulo no se recarga,
-así que una variable alcanza. Si la persona recarga, se pierde — y eso es
-correcto: no debe quedar rastro de una selección que nunca se emitió.
-
-**El encriptado tiene guard contra doble envío.** React 18 en modo
-estricto monta dos veces en desarrollo; sin el `useRef` el voto se
-enviaría dos veces, que en una elección es un problema real.
-
-**Los componentes de pestañas devuelven `null` con la lista vacía**, en
-vez de renderizar un `<ul>` vacío. Un `ul.modulo` sin hijos igual ocupa
-espacio y muestra su borde inferior, porque `[hidden]` pierde contra el
-`display` que le asigna la hoja institucional (D-010).
-
-## Pendientes
-
-- `encriptar()` en `pantallas/Encriptado.tsx` es un marcador de
-  posición. Debe reemplazarse por la librería criptográfica de
-  UParticipa, corriendo en un **Web Worker**: en el hilo principal el
-  navegador se congela y el indicador de carga se detiene justo cuando
-  más se necesita (D-004).
-- Estadísticas y verificación están declaradas como subpestañas pero sin
-  contenido.
-- El gráfico de participación requiere una decisión: UCampus usa Google
-  Charts desde `gstatic.com` más su propio `templatelib.chart()`, y
-  ninguno está disponible en el iframe.
-- El logo del módulo. Ver D-012: el asset disponible es un PNG blanco
-  horizontal, inservible como icono cuadrado de 32 px en temas claros.
-- En producción, el HTML lo debe generar el servidor al validar el
-  ticket, para inyectar el `<link>` del CSS y el token de sesión sin
-  pasar por la URL del navegador.
+- **Verificar la prueba de conocimiento cero** antes de aceptar una
+  papeleta. Acá solo se comprueba que el campo venga.
+- **Persistir.** Todo vive en diccionarios en memoria: se reinicia el
+  proceso y se pierde. Las sesiones deberían ir a un almacén con
+  expiración.
+- **Validar `session_hash`.** Se guarda pero no se usa. Cambia si cambian
+  los grupos o permisos del usuario; habría que decidir qué pasa si eso
+  ocurre a mitad de una votación.
+- **Generar el certificado de votación** (RF09). El endpoint devuelve una
+  URL que no existe.
+- **Aislar el estado entre pruebas.** `prueba.py` corre contra un
+  servidor con estado global; si se ejecuta dos veces sin reiniciar, los
+  casos de "primer voto" fallan por contaminación.

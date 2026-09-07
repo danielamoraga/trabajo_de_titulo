@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UParticipa</title>
+
+<!--
+  La hoja de estilos institucional NO va acá.
+
+  Su URL viene en el campo "css" del ticket de UCampus y depende del tema
+  del usuario, así que se inyecta en tiempo de ejecución (ver
+  src/chrome/montar.ts). En producción el servidor puede inyectarla
+  directo en este HTML al validar el ticket, que ahorra un round-trip.
+
+  Tampoco hay CSS propio: todos los componentes salen de la hoja
+  institucional (D-007). El proyecto no usa framework CSS a propósito —
+  Tailwind resetea con preflight justamente los elementos que UCampus
+  redefine (h1, table, ul, form), y los colores fijos de cualquier
+  framework rompen el RNF02, que exige adaptarse a los cuatro temas.
+-->
+
+<!--
+  resizer.js va como script externo y NUNCA bundleado.
+  Usa u_width sin declararla (global implícito): dentro de un módulo ES,
+  que es "use strict", lanza ReferenceError y se rompe el ajuste de
+  altura del iframe (D-026).
+-->
+<script src="https://ucampus.uchile.cl/b/externos/resizer.js"></script>
+</head>
+<body>
+<div id="raiz"></div>
+<script type="module" src="/src/main.tsx"></script>
+</body>
+</html>

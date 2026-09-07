@@ -23,9 +23,11 @@ from urllib.parse import urlencode
 
 import httpx
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 
 import datos
+import modelos
 import ucampus_fake
 
 app = FastAPI(
@@ -34,6 +36,28 @@ app = FastAPI(
     version="0.1.0",
 )
 app.include_router(ucampus_fake.router)
+
+# CORS: el frontend se sirve en :8000 y este backend en :8001, así que
+# para el navegador son orígenes distintos.
+#
+# En producción el origen es el dominio del Servicio Externo y va en
+# configuración. Nunca "*": con credenciales el navegador lo rechaza, y
+# aunque acá la sesión viaje por cabecera, abrir el origen a cualquiera
+# permitiría que un sitio arbitrario consulte la API con la sesión de
+# quien esté logueado.
+ORIGENES_PERMITIDOS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:5173"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ORIGENES_PERMITIDOS,
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["X-Sesion", "Content-Type"],
+)
 
 # En producción salen de configuración, no del código.
 URL_VALIDACION_UCAMPUS = "http://127.0.0.1:8001/ucampus-fake/validar"
@@ -155,7 +179,7 @@ async def entrada_externo(ticket: str):
 
     # Paso 8: devolver la URL a la que UCampus debe redirigir.
     query = urlencode({"sesion": token})
-    return f"{URL_BASE_FRONTEND}/mock-completo.html?{query}"
+    return f"{URL_BASE_FRONTEND}/index.html?{query}"
 
 
 # =====================================================================
@@ -194,7 +218,7 @@ def _resumen(eleccion: dict, id_externo: str) -> dict:
     }
 
 
-@api.get("/elecciones")
+@api.get("/elecciones", response_model=modelos.Listado)
 def listar_elecciones(s: dict = Depends(sesion_actual)):
     """
     Listado ya filtrado por habilitación (RF02, D-003).
@@ -234,7 +258,7 @@ def _verificar_habilitacion(id_eleccion: str, s: dict) -> dict:
     return eleccion
 
 
-@api.get("/eleccion/{id_eleccion}")
+@api.get("/eleccion/{id_eleccion}", response_model=modelos.DetalleEleccion)
 def detalle_eleccion(id_eleccion: str, s: dict = Depends(sesion_actual)):
     """Detalle con preguntas y opciones, para armar la papeleta (RF03, RF04)."""
     eleccion = _verificar_habilitacion(id_eleccion, s)
@@ -250,7 +274,7 @@ def detalle_eleccion(id_eleccion: str, s: dict = Depends(sesion_actual)):
     return detalle
 
 
-@api.get("/eleccion/{id_eleccion}/urna")
+@api.get("/eleccion/{id_eleccion}/urna", response_model=modelos.PaginaUrna)
 def urna(
     id_eleccion: str,
     pagina: int = Query(1, ge=1),
@@ -305,10 +329,10 @@ def _codigo_falso(id_eleccion: str, n: int) -> str:
     return "".join(out)
 
 
-@api.post("/eleccion/{id_eleccion}/voto")
+@api.post("/eleccion/{id_eleccion}/voto", response_model=modelos.VotoEmitido)
 def emitir_voto(
     id_eleccion: str,
-    cuerpo: dict,
+    cuerpo: modelos.VotoEntrante,
     s: dict = Depends(sesion_actual),
 ):
     """
@@ -330,8 +354,16 @@ def emitir_voto(
     if eleccion["estado"] != "en_curso":
         raise HTTPException(409, "La elección no está recibiendo votos")
 
-    if not cuerpo.get("voto_encriptado"):
-        raise HTTPException(400, "Falta el voto encriptado")
+    # Separación deliberada de dos errores distintos:
+    #  - 422 lo devuelve Pydantic si el cuerpo no tiene la forma esperada
+    #    (falta el campo). Es un error del cliente al construir la
+    #    petición.
+    #  - 400 es una papeleta bien formada que el servidor RECHAZA. En el
+    #    backend real acá es donde falla la verificación de la prueba de
+    #    conocimiento cero, que es el caso del RF07.1 "voto no validado
+    #    criptográficamente".
+    if not cuerpo.voto_encriptado.strip():
+        raise HTTPException(400, "El voto no pudo ser validado criptográficamente")
 
     # Guardar el voto reemplaza el anterior si existía: UParticipa
     # permite volver a votar y el último voto es el que cuenta
