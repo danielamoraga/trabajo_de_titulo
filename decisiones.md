@@ -498,6 +498,183 @@ también declara `table{border-collapse:collapse}` globalmente, y
 muerta en la propia hoja de UCampus: las tablas del módulo real tampoco
 se ven redondeadas.
 
+
+### D-029 — Un módulo por pantalla, chrome y componentes compartidos
+**Estado:** firme
+
+*Contexto.* Los cinco mocks iniciales eran HTML monolíticos con el
+chrome de UCampus (header, menú de ~70 ítems, footer) duplicado en cada
+uno, más una copia del `MOCK` de datos y de los helpers de render.
+
+*Alternativas.*
+1. Seguir con archivos independientes y sincronizarlos a mano.
+2. Extraer lo compartido a módulos ES: cliente de API, componentes y
+   chrome.
+
+*Decisión.* La 2. Los HTML quedaron como cáscaras de ~10 líneas que
+cargan un módulo.
+
+*Razón.* Con cinco pantallas la duplicación ya obligaba a editar el
+mismo menú cinco veces, y varias correcciones (las clases `active`, el
+patrón responsive, el aviso `#maviso`) tuvieron que aplicarse archivo por
+archivo, con el riesgo de que quedaran desincronizados. Bajó de 2.735 a
+1.447 líneas.
+
+*Consecuencia.* El chrome quedó en un único archivo dev-only
+(`chrome.js`), lo que además hace explícito el límite del alcance: con
+`?chrome=0` se ve exactamente lo que produce el Servicio Externo y nada
+más.
+
+### D-030 — La sesión viaja por la URL, propagada por `enlace()`
+**Estado:** firme
+
+*Contexto.* El token de sesión llega en la URL en el paso 10 del flujo,
+pero al navegar entre pantallas se perdería.
+
+*Alternativas.* Guardarlo en `localStorage`, en una cookie, o
+propagarlo por la URL en cada enlace interno.
+
+*Decisión.* Propagarlo por la URL, con un helper `enlace()` que lo
+agrega siempre.
+
+*Razón.* El RNF06 prohíbe almacenar datos sensibles en el cliente, y una
+cookie sería *third-party* dentro del iframe (D-027).
+
+*Consecuencia.* Todo enlace interno tiene que pasar por `enlace()`. Si
+alguien escribe un `href` a mano, la sesión se corta. Es un costo real
+de mantenimiento a cambio de no depender de almacenamiento del
+navegador.
+
+### D-031 — CORS restringido por origen, nunca `*`
+**Estado:** firme
+
+*Contexto.* El frontend se sirve en `:8000` y el backend en `:8001`, así
+que para el navegador son orígenes distintos.
+
+*Decisión.* Lista explícita de orígenes permitidos, y solo las cabeceras
+que se usan (`X-Sesion`, `Content-Type`).
+
+*Razón.* Con `allow_credentials` el navegador rechaza `*`; y aunque la
+sesión viaje por cabecera, abrir el origen permitiría que un sitio
+arbitrario consulte la API con la sesión de quien esté logueado. En
+producción el origen es el dominio del Servicio Externo y va en
+configuración.
+
+### D-032 — Verificación del frontend con jsdom
+**Estado:** provisorio
+
+*Contexto.* Hacía falta comprobar que las pantallas renderizan
+correctamente contra el backend, no solo que el JS parsea.
+
+*Decisión.* Prueba con jsdom que carga las cuatro pantallas y verifica
+el DOM resultante (33 verificaciones).
+
+*Dos limitaciones del entorno que hubo que rodear.* jsdom no soporta
+`<script type="module">`, así que los módulos se bundlean con esbuild
+antes de cargarlos; y jsdom no implementa `fetch`, así que se inyecta el
+de Node en `beforeParse`. Ninguna de las dos afecta al navegador real.
+
+*Pendiente.* Un navegador real (Playwright) verificaría además el
+estilo, el comportamiento del resizer y los cuatro temas, que es
+justamente lo que jsdom no puede ver.
+
+
+### D-033 — Stack: React + Vite + TypeScript
+**Estado:** firme
+
+*Contexto.* Los mocks estaban en JS con módulos ES y `innerHTML`. El
+flujo tiene bastante estado (sesión, elección, papeleta, encriptando,
+error, reintento) y va a crecer con la revisión del voto y las pantallas
+de error.
+
+*Decisión.* React + Vite + TypeScript, con React Router para la
+navegación.
+
+*Razón.* Dos ganancias concretas más allá de la comodidad. La navegación
+SPA permite que la papeleta viaje **en memoria** entre la cabina y el
+encriptado, sin pasar por la URL ni por `sessionStorage` (D-034). Y
+TypeScript convierte el contrato en algo que verifica el compilador
+(D-035).
+
+*Consecuencia.* En producción las rutas del módulo (`/cabina`,
+`/resultados`) no son archivos, así que el servidor del Servicio Externo
+necesita fallback a `index.html`.
+
+### D-034 — La papeleta viaja en memoria del módulo
+**Estado:** firme
+
+*Contexto.* Entre la cabina y el encriptado hay que pasar la selección.
+En la versión anterior, con páginas separadas, se usó `sessionStorage`.
+
+*Alternativas.* Parámetro de query, `sessionStorage`, o una variable de
+módulo aprovechando que la navegación es SPA.
+
+*Decisión.* Variable de módulo (`api/votoPendiente.ts`).
+
+*Razón.* Un parámetro de query queda en el historial del navegador, en
+los logs del servidor y en la cabecera `Referer`, o sea que filtraría el
+voto (D-005). `sessionStorage` lo persiste en disco. Con navegación SPA
+el módulo no se recarga entre las dos pantallas, así que una variable
+alcanza.
+
+*Consecuencia deseable.* Si la persona recarga, la selección se pierde y
+la pantalla informa que no hay voto pendiente. Es correcto: no debe
+quedar rastro de una selección que nunca se emitió.
+
+### D-035 — Modelos Pydantic en el backend, tipos generados en el frontend
+**Estado:** firme
+
+*Contexto.* Los endpoints devolvían `dict` pelado, así que el
+`/openapi.json` tenía los esquemas de respuesta vacíos y no servía para
+generar tipos.
+
+*Decisión.* Declarar el contrato como modelos Pydantic
+(`backend/modelos.py`) y generar los tipos de TypeScript desde el
+OpenAPI con `openapi-typescript` (`npm run tipos`).
+
+*Razón.* Tres cosas a la vez: FastAPI valida la respuesta antes de
+enviarla, el frontend obtiene tipos que el compilador verifica, y el
+`/docs` se convierte en la especificación que se le entrega al CLCERT.
+Importa porque el backend real lo va a mantener otro equipo: si cambian
+un campo, `npm run build` falla en vez de romperse en silencio en el
+navegador.
+
+*Efecto lateral encontrado.* Con el modelo, un cuerpo sin
+`voto_encriptado` pasó a devolver 422 (validación de Pydantic) en vez de
+llegar al chequeo manual de 400. Se aprovechó para separar dos errores
+que conviene no confundir: **422** es un cuerpo mal formado (error del
+cliente al construir la petición) y **400** es una papeleta bien formada
+que el servidor rechaza — que en el backend real es donde falla la
+verificación de la prueba de conocimiento cero, el caso del RF07.1
+"voto no validado criptográficamente".
+
+### D-036 — Sin framework CSS
+**Estado:** firme
+
+*Contexto.* La intención inicial era usar Tailwind o Bulma. Bulma en
+particular es lo que usa el frontend actual de UParticipa.
+
+*Decisión.* Ningún framework CSS. El proyecto tiene cero CSS propio.
+
+*Razón.* Tres problemas, en orden de gravedad:
+1. **El RNF02.** Los colores de cualquier framework son fijos, y el
+   módulo debe adaptarse a los cuatro temas de UCampus. Eso solo funciona
+   si los colores vienen de la hoja institucional. Ya se verificó que
+   todos los componentes necesarios están ahí.
+2. **El preflight de Tailwind** resetea `h1`, `h2`, `table`, `ul` y
+   `form`, que son exactamente los elementos que la hoja de UCampus
+   redefine. Cargar las dos es una pelea de especificidad.
+3. **Bulma es CSS global y opinado** sobre `.button`, `.table`,
+   `.title`, `.navbar`: colisiona de frente.
+
+*Nota.* Que UParticipa use Bulma no es argumento para este módulo: el
+objetivo es verse como UCampus, no como UParticipa. Es el punto de la
+integración *seamless*.
+
+*Si más adelante hacen falta utilidades:* Tailwind con
+`preflight: false`, solo para layout donde UCampus no ofrece nada
+(spacing, flex, grid), nunca para colores, tipografía ni componentes.
+
 ---
 
 ## Correcciones registradas
@@ -530,4 +707,9 @@ inspeccionar el DOM y la hoja de estilos.
 - CORS de `/d/font/` para las fuentes (D-025).
 - Cookies de tercero en el iframe (D-027).
 - Coincidencia de identificadores entre `pers_id` y el claim de OIDC
-  (D-001).
+  (D-001). Parcialmente resuelto: UParticipa usa `id_externo`, que
+  UCampus entrega en el ticket — pero la doc lo marca como **opcional**,
+  así que hay que confirmar con el equipo de UCampus que el Pasaporte
+  quede habilitado para el módulo.
+- Verificación en un navegador real: estilos, resizer y los cuatro temas
+  (D-032).
