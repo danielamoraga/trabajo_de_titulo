@@ -379,13 +379,16 @@ document.getElementById("btn-votar").addEventListener("click", function (ev) {
   if (!marcadas.length) {
     // Estructura de aviso real de UCampus: #mensajes > div#maviso >
     // a.close + ul > li. Descartable con un clic en cualquier parte.
+    // #merror es el id de severidad de error en UCampus: kernel.mensaje
+    // lo elige cuando el texto empieza con "-". Rojo, sin CSS propio.
     var m = document.getElementById("mensajes");
+    m.classList.add("js");
     m.innerHTML =
-      '<div id="maviso">' +
-        '<a class="close">x</a>' +
+      '<div id="merror">' +
+        '<a class="close" href="#">x</a>' +
         '<ul><li>Debe seleccionar una opción antes de votar.</li></ul>' +
       '</div>';
-    document.getElementById("maviso").addEventListener("click", function () {
+    document.getElementById("merror").addEventListener("click", function () {
       this.remove();
     });
     return;

@@ -11,14 +11,13 @@
   Cubre RF05 (pantalla de encriptado) y RNF09 (feedback visual
   mientras el proceso corre, para que no se perciba bloqueado).
 
-  El aviso usa la estructura real de #mensajes (div#maviso >
-  a.close + ul > li), confirmada por inspección.
+  Sin CSS propio: todo sale de la hoja institucional.
+
+  El aviso replica kernel.mensaje(): la severidad va en el ID del div
+  (#maviso beige / #mexito verde / #merror rojo / #minfo azul),
+  verificado contra focus.style y jquery.javascript.
 
   El indicador de carga usa .espera, el componente de la plataforma.
-
-  SIN VERIFICAR: si existe una variante de #maviso para mensajes de
-  éxito o error. El ejemplo capturado no trae clase de severidad, así
-  que el verde del aviso final sigue siendo CSS propio.
 
   Las clases de modernizr en <html> vienen del DOM real. Algunas
   reglas de UCampus pueden depender de .js o .no-touch.
@@ -41,51 +40,11 @@
 <link id="uc-css" rel="stylesheet" media="all" href="" type="text/css">
 <link id="uc-css-modulo" rel="stylesheet" media="all" href="" type="text/css">
 
-<style id="css-propio">
-/* ===================================================================
-   CSS_PROPIO
-   Cada regla indica qué componente institucional se intentó primero y
-   por qué no alcanzó.
-   =================================================================== */
-
-/* Aviso de éxito en verde.
-   Intentado primero: un modificador de severidad sobre #maviso. El DOM
-   real de UCampus muestra #maviso SIN clase, y no se encontró variante
-   ok/warn/wrong para mensajes, así que la plataforma solo ofrece el
-   aviso beige. Para la confirmación de voto emitido eso es insuficiente:
-   es el momento en que la persona más necesita una señal inequívoca de
-   que el proceso terminó, y un beige idéntico al de "proceso iniciado"
-   no la da.
-
-   Se usa verde semitransparente en vez de un hex fijo para que
-   funcione en los cuatro temas: se mezcla con el fondo del tema en vez
-   de imponer un color claro sobre un tema oscuro. El tono se alinea
-   con el verde que UCampus ya usa en sus gráficos de participación
-   (#aaeeaa).
-
-   PENDIENTE: si aparece una variante nativa (#maviso.ok o similar) al
-   capturar un mensaje de éxito real, esta regla se elimina. */
-#maviso.exito {
-  background-color: rgba(120, 200, 120, 0.28);
-  /* Borde más oscuro que el relleno, replicando la relación que el
-     aviso beige de UCampus tiene entre su fondo y su borde. Se
-     sobrescribe solo border-color: el ancho, el estilo y el radio
-     siguen viniendo de la hoja institucional. */
-  border-color: rgba(70, 140, 70, 0.55);
-  /* Texto en el mismo verde oscuro.
-     Acá NO se usa transparencia: en fondo y borde funciona porque se
-     mezclan con el tema, pero un texto verde translúcido sobre un tema
-     oscuro queda ilegible. Un color de texto necesita contraste fijo.
-     Contrapartida: este verde está calculado contra fondo claro, así
-     que en focus-dark y classic-dark hay que verificar la legibilidad
-     y, si hace falta, aclararlo con una media query de tema. */
-  color: rgb(45, 105, 45);
-}
-
-/* (Se eliminó la regla del indicador de carga: la plataforma provee
-   .espera, que ya trae el spinner y el gris del texto. Un componente
-   institucional siempre gana sobre una regla propia.) */
-</style>
+<!--
+  Sin CSS propio.
+  Todo lo que esta pantalla necesita existe en la hoja institucional:
+  el aviso verde es #mexito y el indicador de carga es .espera.
+-->
 </head>
 <body class="logeado" data-dev="logeado">
 
@@ -336,7 +295,7 @@ var ESTADOS = {
 
   encriptando: {
     aviso: "Proceso de encriptación de voto iniciado.",
-    avisoClase: "",
+    avisoTipo: "maviso",        // beige
     // .espera es el componente de carga de la plataforma. Aparece en
     // el DOM real como <div id="loading" class="espera">Cargando...</div>
     // y trae el spinner y el gris del texto sin CSS propio.
@@ -345,7 +304,7 @@ var ESTADOS = {
 
   exito: {
     aviso: "Su proceso de votación ha finalizado correctamente.",
-    avisoClase: "exito",   // ver CSS_PROPIO: verde, no beige
+    avisoTipo: "mexito",        // verde nativo
     cuerpo: '<p>Su voto fue encriptado y recibido por la urna electrónica.</p>' +
             // Los tres sin modificador: a.boton neutro (azul). Las
             // variantes ok/warn/wrong señalizan consecuencia, y acá las
@@ -361,60 +320,61 @@ var ESTADOS = {
 };
 
 // ===================================================================
-// AVISO — estructura confirmada contra el DOM real de UCampus:
+// AVISO — replica kernel.mensaje(), verificado en jquery.javascript
 //
-//   <div id="mensajes" role="status">
-//     <div id="maviso" onclick="...fadeOut...remove()">
-//       <a class="close">x</a>
-//       <ul><li>texto</li></ul>
-//     </div>
+// La severidad va en el ID, no en una clase. kernel.mensaje() lee el
+// primer carácter del texto y elige el id:
+//
+//     "-texto"  → #merror   (rojo)
+//     "+texto"  → #mexito   (verde)
+//     "*texto"  → #minfo    (azul)
+//     "texto"   → #maviso   (beige, por defecto)
+//
+// La hoja base define los cuatro bajo #mensajes, cada uno con fondo,
+// borde más oscuro y color de texto propios. #mexito usa exactamente
+// la misma paleta que div.pill.ok (#dff0d8 / #d6e9c6 / #3c763d).
+//
+// Markup que genera el original:
+//
+//   <div id="{tipo}">
+//     <a class="close" href="javascript:...">x</a>
+//     <ul><li>texto</li></ul>
 //   </div>
 //
-// Tres cosas que esto corrige respecto de lo que se había asumido:
+// más .addClass("js") sobre #mensajes, y el div completo es clickeable
+// para descartarse con fadeOut. Acá se reimplementa sin jQuery.
 //
-// 1. NO hay clase de severidad. #maviso viene sin ok/warn/wrong, así
-//    que el beige es el único estilo de aviso disponible. Un banner
-//    verde de éxito no es un patrón de la plataforma. Consecuencia: la
-//    diferencia entre "proceso iniciado" y "voto recibido" queda solo
-//    en el texto. Si se necesita distinguirlos visualmente, hay que
-//    capturar un mensaje de éxito real para ver si existe una variante
-//    (#maviso.ok o similar); si no existe, es CSS propio justificado.
-//
-// 2. Es un ID, no una clase: hay un solo bloque de aviso a la vez.
-//    Varios mensajes simultáneos van como varios <li> del mismo <ul>,
-//    no como varios #maviso.
-//
-// 3. El cierre es <a class="close">x</a> (minúscula), va ANTES del
-//    <ul>, y no tiene handler propio: el onclick está en el contenedor
-//    completo, o sea que cualquier clic en el aviso lo descarta.
-//
-// El original usa jQuery ($.fadeOut), que no está disponible dentro del
-// iframe, así que el descarte se reimplementa en vanilla.
+// Detalle del original que conviene conservar: varios mensajes del
+// mismo tipo se acumulan como <li> del mismo <ul>, no como divs
+// separados — por eso el contenedor es un id y no una clase.
 // ===================================================================
-function aviso(texto, clase) {
-  var el = document.getElementById("mensajes");
+function aviso(texto, tipo) {
+  var mensajes = document.getElementById("mensajes");
+  mensajes.classList.add("js");
 
-  el.innerHTML =
-    '<div id="maviso"' + (clase ? ' class="' + clase + '"' : '') + '>' +
-      '<a class="close">x</a>' +
-      '<ul><li>' + texto + '</li></ul>' +
-    '</div>';
+  var el = document.getElementById(tipo);
+  if (!el) {
+    el = document.createElement("div");
+    el.id = tipo;
+    el.innerHTML = '<a class="close" href="#">x</a><ul></ul>';
+    el.addEventListener("click", function () { this.remove(); });
+    mensajes.appendChild(el);
+  }
 
-  // Descartable siempre, incluido durante el encriptado.
-  //
-  // Antes lo había dejado bloqueado mientras el proceso corría,
-  // razonando que no se descarta el aviso de algo en curso. Era un
-  // error de premisa: el aviso no es el indicador de progreso, el
-  // spinner lo es. Descartar la notificación no aborta nada, y
-  // bloquearla se apartaría del comportamiento de la plataforma.
-  document.getElementById("maviso").addEventListener("click", function () {
-    this.remove();
-  });
+  var li = document.createElement("li");
+  li.textContent = texto;
+  el.querySelector("ul").appendChild(li);
+}
+
+// Limpia todos los avisos antes de pintar un estado nuevo.
+function limpiarAvisos() {
+  document.getElementById("mensajes").innerHTML = "";
 }
 
 function pintar(nombre) {
   var e = ESTADOS[nombre];
-  aviso(e.aviso, e.avisoClase);
+  limpiarAvisos();
+  aviso(e.aviso, e.avisoTipo);
   document.getElementById("proceso").innerHTML = e.cuerpo;
 }
 
