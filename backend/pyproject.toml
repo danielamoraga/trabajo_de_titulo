@@ -1,0 +1,12 @@
+# Permite correr el mock con "uv run uvicorn main:app --port 8001 --reload"
+# sin declarar las dependencias en la línea de comandos.
+[project]
+name = "uparticipa-ucampus-mock"
+version = "0.1.0"
+description = "Mock del backend del Servicio Externo de UParticipa en UCampus"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "httpx>=0.27",
+]
