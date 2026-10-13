@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UParticipa — Informaciones de la votación</title>
+
+<!--
+  UPARTICIPA — Informaciones de la votación
+  Mockup funcional autocontenido del Servicio Externo de UParticipa.
+
+  Reúne cuatro vistas de una elección: urna electrónica, estadísticas,
+  resultados y verificación. Cuáles se ofrecen depende de si la elección
+  está en curso o terminada.
+
+  CÓMO ABRIRLO
+    python3 -m http.server 8000
+    http://localhost:8000/4_informaciones.html
+
+  No necesita backend ni instalación: el JavaScript va embebido y los
+  datos están simulados en el propio archivo. El estado del flujo
+  (papeleta pendiente y votos emitidos) se guarda en sessionStorage. Si
+  el archivo se abre con doble clic (file://) y el navegador bloquea
+  sessionStorage, se usa window.name, que se mantiene mientras se navega
+  en la misma pestaña. Conviene usar el servidor.
+
+  Para volver a probar desde cero sin cerrar la pestaña, ejecutar
+  reiniciarMock() en la consola del navegador.
+
+  LAS CUATRO PANTALLAS
+    1_listado.html        elecciones habilitadas
+    2_cabina.html         papeleta
+    3_encriptado.html     encriptado, confirmación y emisión
+    4_informaciones.html  urna, estadísticas, resultados y verificación
+
+  Se enlazan entre sí, así que el flujo completo se recorre desde el
+  listado. Tienen que estar en la misma carpeta, junto a media/, y con
+  estos nombres: si se renombran, los enlaces dejan de funcionar.
+
+  PARÁMETROS DE URL
+    ?theme=focus | focus-dark | classic | classic-dark   (por defecto focus)
+    ?chrome=0   muestra solo lo que produce el Servicio Externo
+    ?v=34708    versión de la hoja de estilos de UCampus
+    ?css=URL    hoja de estilos a usar en lugar de la de UCampus
+
+  Los enlaces entre pantallas conservan theme, chrome y v.
+
+  ALCANCE
+  El header, el menú lateral y el footer institucional los renderiza
+  UCampus fuera del iframe; aquí están simulados solo para dar contexto.
+  Con ?chrome=0 desaparecen, y lo que queda es lo que le corresponde al
+  Servicio Externo, incluido su propio pie con los logos de CLCERT y
+  UParticipa (enlazados a clcert.cl y uparticipa.cl).
+
+  ESTILOS
+  Los componentes usan la hoja de estilos institucional de UCampus, que
+  se carga en tiempo de ejecución según el tema. En producción su URL
+  viene en el campo "css" del ticket. No hay estilos propios, salvo unos
+  pocos en línea en el pie: separación superior, alineación vertical de
+  los logos y espacio entre ellos. El centrado usa la clase .center de
+  UCampus.
+-->
+</head>
+<body>
+<script>
+(() => {
+  // ── API simulada: datos de prueba, votos guardados y enlaces entre pantallas ──
+  var params = new URLSearchParams(location.search);
+  var idEleccion = params.get("id");
+  function enlace(pagina, extra = {}) {
+    const q = new URLSearchParams();
+    for (const clave of ["theme", "chrome", "v"]) {
+      const valor = params.get(clave);
+      if (valor !== null) q.set(clave, valor);
+    }
+    for (const [k, v] of Object.entries(extra)) {
+      if (v === null || v === void 0) q.delete(k);
+      else q.set(k, v);
+    }
+    const cadena = q.toString();
+    return cadena ? `${pagina}?${cadena}` : pagina;
+  }
+  function enlaceAqui(extra = {}) {
+    const actual = location.pathname.split("/").pop() || "1_listado.html";
+    const q = new URLSearchParams(location.search);
+    for (const [k, v] of Object.entries(extra)) {
+      if (v === null || v === void 0) q.delete(k);
+      else q.set(k, v);
+    }
+    const cadena = q.toString();
+    return cadena ? `${actual}?${cadena}` : actual;
+  }
+  var ErrorApi = class extends Error {
+    constructor(mensaje, estado) {
+      super(mensaje);
+      this.estado = estado;
+    }
+  };
+  var OPCIONES = [
+    { id: "A-1", codigo: "A-1", nombre: "Opci\xF3n A", lista: "Lista 1" },
+    { id: "B-1", codigo: "B-1", nombre: "Opci\xF3n B", lista: "Lista 2" },
+    { id: "B-2", codigo: "B-2", nombre: "Opci\xF3n C", lista: "Lista 2" },
+    { id: "C-1", codigo: "C-1", nombre: "Opci\xF3n D", lista: null },
+    { id: "D-1", codigo: "D-1", nombre: "Opci\xF3n E", lista: null },
+    { id: "E-1", codigo: "E-1", nombre: "Opci\xF3n F", lista: null },
+    { id: "blanco", codigo: null, nombre: "Voto en blanco", lista: null },
+    { id: "nulo", codigo: null, nombre: "Voto nulo", lista: null }
+  ];
+  var ELECCIONES = {
+    "e-01": {
+      id: "e-01",
+      nombre: "Votaci\xF3n 1 [Tipo de elecci\xF3n]",
+      tipo: "eleccion",
+      estado: "en_curso",
+      desde: "11/05/2026",
+      hasta: "12/05/2026 a las 20:00 hrs.",
+      claustro: 37577,
+      respuestas: 42,
+      participacion: 0.1,
+      seleccion: "simple",
+      max_selecciones: 1,
+      urna: 42,
+      preguntas: [
+        {
+          id: "p1",
+          enunciado: "Seleccionar la opci\xF3n de su preferencia",
+          opciones: OPCIONES
+        }
+      ]
+    },
+    "e-02": {
+      id: "e-02",
+      nombre: "Votaci\xF3n 2 [Tipo de consulta]",
+      tipo: "consulta",
+      estado: "en_curso",
+      desde: "20/06/2026",
+      hasta: "30/06/2026 a las 18:00 hrs.",
+      claustro: 41025,
+      respuestas: 17,
+      participacion: 0.04,
+      seleccion: "simple",
+      max_selecciones: 1,
+      urna: 17,
+      preguntas: [
+        {
+          id: "p1",
+          enunciado: "Seleccionar la opci\xF3n de su preferencia",
+          opciones: [
+            { id: "si", codigo: null, nombre: "Apruebo", lista: null },
+            { id: "no", codigo: null, nombre: "Rechazo", lista: null },
+            { id: "blanco", codigo: null, nombre: "Voto en blanco", lista: null }
+          ]
+        }
+      ]
+    },
+    "e-03": {
+      id: "e-03",
+      nombre: "Votaci\xF3n 3 [Tipo de elecci\xF3n]",
+      tipo: "eleccion",
+      estado: "finalizada",
+      desde: "11/05/2026",
+      hasta: "12/05/2026 a las 20:00 hrs.",
+      claustro: 6264,
+      respuestas: 2587,
+      participacion: 41.3,
+      seleccion: "simple",
+      max_selecciones: 1,
+      urna: 287,
+      preguntas: []
+    },
+    "e-04": {
+      id: "e-04",
+      nombre: "Votaci\xF3n 4 [Tipo de plebiscito]",
+      tipo: "plebiscito",
+      estado: "finalizada",
+      desde: "29/10/2025",
+      hasta: "31/10/2025 a las 18:00 hrs.",
+      claustro: 6583,
+      respuestas: 1364,
+      participacion: 20.7,
+      seleccion: "simple",
+      max_selecciones: 1,
+      urna: 1364,
+      preguntas: []
+    }
+  };
+  var CLAVE_VOTOS = "mock_votos";
+  function hayStorage() {
+    try {
+      sessionStorage.setItem("__probe__", "1");
+      sessionStorage.removeItem("__probe__");
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  function nombreVentana() {
+    try {
+      const d = JSON.parse(window.name || "{}");
+      return d && typeof d === "object" ? d : {};
+    } catch {
+      return {};
+    }
+  }
+  function votos() {
+    try {
+      const bruto = hayStorage() ? sessionStorage.getItem(CLAVE_VOTOS) : nombreVentana()[CLAVE_VOTOS];
+      return JSON.parse(bruto || "{}");
+    } catch {
+      return {};
+    }
+  }
+  function guardarVoto(id, papeleta) {
+    const v = votos();
+    v[id] = papeleta;
+    const serializado = JSON.stringify(v);
+    if (hayStorage()) {
+      sessionStorage.setItem(CLAVE_VOTOS, serializado);
+      return;
+    }
+    const d = nombreVentana();
+    d[CLAVE_VOTOS] = serializado;
+    window.name = JSON.stringify(d);
+  }
+  function reiniciar() {
+    try {
+      sessionStorage.removeItem(CLAVE_VOTOS);
+      sessionStorage.removeItem("papeleta_pendiente");
+    } catch {
+    }
+    window.name = "";
+    location.reload();
+  }
+  if (typeof window !== "undefined") window.reiniciarMock = reiniciar;
+  function codigo(id, n) {
+    const abc = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let semilla = 0;
+    for (const c of id + ":" + n) semilla = Math.imul(semilla, 31) + c.charCodeAt(0) | 0;
+    let x = (semilla ^ 2654435769) >>> 0;
+    let s = "";
+    for (let i = 0; i < 43; i++) {
+      x ^= x << 13;
+      x >>>= 0;
+      x ^= x >>> 17;
+      x ^= x << 5;
+      x >>>= 0;
+      s += abc[x % abc.length];
+    }
+    return s;
+  }
+  var demora = (ms = 180) => new Promise((r) => setTimeout(r, ms));
+  function resumen(e) {
+    const emitidos = votos();
+    const yaVoto = Boolean(emitidos[e.id]);
+    const extra = yaVoto && e.estado === "en_curso" ? 1 : 0;
+    return {
+      id: e.id,
+      nombre: e.nombre,
+      tipo: e.tipo,
+      estado: e.estado,
+      desde: e.desde,
+      hasta: e.hasta,
+      claustro: e.claustro,
+      respuestas: e.respuestas + extra,
+      participacion: e.participacion,
+      ya_voto: yaVoto,
+      acciones: e.estado === "en_curso" ? ["votar", "urna", "estadisticas"] : ["resultados", "urna", "estadisticas", "verificacion"]
+    };
+  }
+  var api = {
+    async elecciones() {
+      await demora();
+      return {
+        usuario: { id_externo: "PASAPORTE-MOCK", theme: "focus", lang: "es" },
+        elecciones: Object.values(ELECCIONES).map(resumen)
+      };
+    },
+    async eleccion(id) {
+      await demora();
+      const e = ELECCIONES[id];
+      if (!e) throw new ErrorApi("Elecci\xF3n no encontrada", 404);
+      const emitidos = votos();
+      return {
+        ...resumen(e),
+        seleccion: e.seleccion,
+        max_selecciones: e.max_selecciones,
+        preguntas: e.preguntas,
+        ya_voto: Boolean(emitidos[id]),
+        mi_papeleta: emitidos[id] ?? null
+      };
+    },
+    async urna(id, { pagina = 1, porPagina = 50 } = {}) {
+      await demora(250);
+      const e = ELECCIONES[id];
+      if (!e) throw new ErrorApi("Elecci\xF3n no encontrada", 404);
+      const emitidos = votos();
+      const mia = emitidos[id];
+      const total = e.urna + (mia ? 1 : 0);
+      const desde = (pagina - 1) * porPagina;
+      const hasta = Math.min(desde + porPagina, total);
+      const filas = [];
+      for (let n = desde; n < hasta; n++) {
+        const papeleta = mia && n === total - 1 ? mia : codigo(id, n);
+        filas.push({ papeleta, voto_url: "#" });
+      }
+      return {
+        pagina,
+        por_pagina: porPagina,
+        total,
+        total_paginas: Math.max(1, Math.ceil(total / porPagina)),
+        desde: total ? desde + 1 : 0,
+        hasta,
+        filas
+      };
+    },
+    async votar(id) {
+      await demora(400);
+      const e = ELECCIONES[id];
+      if (!e) throw new ErrorApi("Elecci\xF3n no encontrada", 404);
+      if (e.estado !== "en_curso")
+        throw new ErrorApi("La elecci\xF3n no est\xE1 recibiendo votos", 409);
+      const emitidos = votos();
+      const reemplaza = Boolean(emitidos[id]);
+      const papeleta = emitidos[id] ?? codigo(id, e.urna);
+      guardarVoto(id, papeleta);
+      return {
+        papeleta,
+        reemplaza_voto_anterior: reemplaza,
+        certificado_url: "#"
+      };
+    }
+  };
+
+  // ── Entorno UCampus simulado: header, menú lateral, footer y hoja de estilos ──
+  var TEMAS = ["focus", "focus-dark", "classic", "classic-dark"];
+  var ARRIBA = `<div id="header-content-wrapper">
+
+<h1 id="header" role="heading"><a href="#"><span>Ucampus Uchile :: </span></a></h1>
+
+<h2 id="titulo">Ucampus Uchile</h2>
+
+<a id="toggler" href="#" aria-label="Abrir y Cerrar el Men\xFA"></a>
+
+<div id="content-wrapper">
+
+<div id="menu">
+
+<ul id="contenedor_opciones">
+
+  <li class="pwa only-movil">
+    <a href="#" class="permalink"><i class="fa-regular fa-share-nodes"></i> <span class="tooltip">Compartir</span></a>
+    <a href="#"><i class="fa-regular fa-rotate-right"></i> <span class="tooltip">Recargar</span></a>
+  </li>
+
+  <li id="widget_perfil" class="usuario">
+    <a class="perfil" href="#">
+      <h1><img src="https://ucampus.uchile.cl/d/images/servicios/defecto_v34708.png" class="photo foto chica" alt="Foto de persona"> Usuario Votante</h1>
+    </a>
+  </li>
+
+  <li class="contact">
+    <a href="#" class="contactar"><span>Contacto</span></a>
+  </li>
+
+  <li class="logout">
+    <a href="#" class="salir"><span>Salir</span></a>
+  </li>
+
+</ul>
+
+<div id="modulos" class=" ">
+
+  <div id="favoritos" class="pinned">
+    <h1>Favoritos</h1>
+    <ul id="favs">
+      <li class="fcfm_bia ">
+        <a href="#"><h1><img src="https://ucampus.uchile.cl/d/images/servicios/bia_v34708.svg" alt="" class="icono"> Boletines - FCFM</h1></a>
+      </li>
+      <li class="fcfm_ia ">
+        <a href="#"><h1><img src="https://ucampus.uchile.cl/d/images/servicios/defecto_v34708.png" alt="" class="icono"> Inscripci\xF3n Acad\xE9mica - FCFM</h1></a>
+      </li>
+      <li class="fcfm_titulacion2 ">
+        <a href="#"><h1><img src="https://ucampus.uchile.cl/d/images/servicios/defecto_v34708.png" alt="" class="icono"> T\xEDtulos y Grados - FCFM</h1></a>
+      </li>
+      <!--
+        El icono del m\xF3dulo NO lo controla el servicio externo: el men\xFA
+        lateral lo renderiza UCampus. En producci\xF3n hay que entregarle
+        el SVG al equipo de UCampus como parte del registro del m\xF3dulo.
+        Esto es requisito operativo, no de c\xF3digo.
+      -->
+      <li class="uparticipa sel">
+        <a href="1_listado.html"><h1><img src="media/uparticipa.png" alt="" class="icono"> UParticipa</h1></a>
+      </li>
+      <li class="uchile_votaciones ">
+        <a href="#"><h1><img src="https://ucampus.uchile.cl/d/images/servicios/defecto_v34708.png" alt="" class="icono"> Votaciones</h1></a>
+      </li>
+      <li class="fcfm_votaciones ">
+        <a href="#"><h1><img src="https://ucampus.uchile.cl/d/images/servicios/votaciones_v34708.svg" alt="" class="icono"> Votaciones - FCFM</h1></a>
+      </li>
+    </ul>
+  </div>
+
+  <div id="servicios" class="pinned active">
+    <h1>Servicios</h1>
+    <ul>
+      <li id="forms" class=" forms"><a href="#">Formularios</a></li>
+      <li id="visor_repositorio_normativo" class=" visor_repositorio_normativo"><a href="#">Repositorio Normativo Contralor\xEDa Universitaria</a></li>
+      <li id="uparticipa" class="sel uparticipa"><a href="1_listado.html">UParticipa</a></li>
+      <li id="uchile_votaciones" class=" uchile_votaciones"><a href="#">Votaciones</a></li>
+      <li id="workflow" class=" workflow"><a href="#">Workflow</a></li>
+    </ul>
+  </div>
+
+  <div id="fcfm" class="bloque active">
+    <h1><a href="#" class="toggle" data-bloque="fcfm">FCFM</a></h1>
+    <ul>
+      <li id="fcfm_bia" class=" fcfm_bia"><a href="#">Boletines</a></li>
+      <li id="fcfm_bolsa_trabajo" class=" fcfm_bolsa_trabajo"><a href="#">Bolsa de Empleos</a></li>
+      <li id="fcfm_catalogo" class=" fcfm_catalogo"><a href="#">Cat\xE1logo de Cursos</a></li>
+      <li id="fcfm_certificados2" class=" fcfm_certificados2"><a href="#">Certificados</a></li>
+      <li id="fcfm_ext_certificados" class=" fcfm_ext_certificados"><a href="#">Certificados Complementarios</a></li>
+      <li id="concursos" class=" concursos"><a href="#">Concursos Estudiantiles</a></li>
+      <li id="fcfm_actas_consejo_escuela" class=" fcfm_actas_consejo_escuela"><a href="#">Consejos de Escuela</a></li>
+      <li id="fcfm_actas_consejo" class=" fcfm_actas_consejo"><a href="#">Consejos de Facultad</a></li>
+      <li id="fcfm_encuestas_acreditacion" class=" fcfm_encuestas_acreditacion"><a href="#">Encuestas Acreditaci\xF3n</a></li>
+      <li id="fcfm_encuestas" class=" fcfm_encuestas"><a href="#">Encuestas Docentes</a></li>
+      <li id="fcfm_eventos" class=" fcfm_eventos"><a href="#">Eventos</a></li>
+      <li id="fcfm_formulario_visitas" class=" fcfm_formulario_visitas"><a href="#">Formulario Visitas</a></li>
+      <li id="fcfm_grupos_organizados" class=" fcfm_grupos_organizados"><a href="#">Grupos Organizados</a></li>
+      <li id="fcfm_ia" class=" fcfm_ia"><a href="#">Inscripci\xF3n Acad\xE9mica</a></li>
+      <li id="fcfm_memorias" class=" fcfm_memorias"><a href="#">Memorias y Trabajos de T\xEDtulo</a></li>
+      <li id="fcfm_intercambio" class=" fcfm_intercambio"><a href="#">Movilidad Internacional</a></li>
+      <li id="fcfm_postulaciones" class=" fcfm_postulaciones"><a href="#">Postulaciones Docentes</a></li>
+      <li id="fcfm_practicas" class=" fcfm_practicas"><a href="#">Pr\xE1cticas</a></li>
+      <li id="fcfm_programas_cursos" class=" fcfm_programas_cursos"><a href="#">Programas de Cursos</a></li>
+      <li id="fcfm_reservas" class=" fcfm_reservas"><a href="#">Reserva de Espacios</a></li>
+      <li id="fcfm_semestre_verano" class=" fcfm_semestre_verano"><a href="#">Semestre de Verano</a></li>
+      <li id="fcfm_titulacion2" class=" fcfm_titulacion2"><a href="#">T\xEDtulos y Grados</a></li>
+      <li id="fcfm_unidades_becarias" class=" fcfm_unidades_becarias"><a href="#">Unidades Becarias</a></li>
+      <li id="fcfm_votaciones" class=" fcfm_votaciones"><a href="#">Votaciones</a></li>
+    </ul>
+  </div>
+
+  <div id="otros_catalogos" class="bloque ">
+    <h1><a href="#" class="toggle" data-bloque="otros_catalogos">Otros Cat\xE1logos</a></h1>
+    <ul>
+      <li id="artes_catalogo" class=" artes_catalogo"><a href="#">Artes</a></li>
+      <li id="bachillerato_catalogo" class=" bachillerato_catalogo"><a href="#">Bachillerato</a></li>
+      <li id="ciencias_catalogo" class=" ciencias_catalogo"><a href="#">Ciencias</a></li>
+      <li id="agronomia_catalogo" class=" agronomia_catalogo"><a href="#">Ciencias Agron\xF3micas</a></li>
+      <li id="rrii_catalogo" class=" rrii_catalogo"><a href="#">DRI</a></li>
+      <li id="derecho_catalogo" class=" derecho_catalogo"><a href="#">Derecho</a></li>
+      <li id="facso_catalogo" class=" facso_catalogo"><a href="#">FACSO</a></li>
+      <li id="fau_catalogo" class=" fau_catalogo"><a href="#">FAU</a></li>
+      <li id="icei_catalogo" class=" icei_catalogo"><a href="#">FCEI</a></li>
+      <li id="filosofia_catalogo" class=" filosofia_catalogo"><a href="#">Filosof\xEDa</a></li>
+      <li id="forestal_catalogo" class=" forestal_catalogo"><a href="#">Forestal</a></li>
+      <li id="inap_catalogo" class=" inap_catalogo"><a href="#">Gobierno</a></li>
+      <li id="iei_catalogo" class=" iei_catalogo"><a href="#">IEI</a></li>
+      <li id="inta_catalogo" class=" inta_catalogo"><a href="#">INTA</a></li>
+      <li id="ie_catalogo" class=" ie_catalogo"><a href="#">Instituto de Educaci\xF3n</a></li>
+      <li id="medicina_catalogo" class=" medicina_catalogo"><a href="#">Medicina</a></li>
+      <li id="odontologia_catalogo" class=" odontologia_catalogo"><a href="#">Odontolog\xEDa</a></li>
+      <li id="faciqyf_catalogo" class=" faciqyf_catalogo"><a href="#">QyF</a></li>
+      <li id="veterinaria_catalogo" class=" veterinaria_catalogo"><a href="#">Veterinaria</a></li>
+    </ul>
+  </div>
+
+</div><!-- /#modulos -->
+</div><!-- /#menu -->
+
+<div id="navigation-wrapper">
+
+<div id="navigation" class="">
+
+`;
+  var ABAJO = `</div><!-- /#navigation -->
+
+<div id="footer" role="contentinfo">
+
+<ul>
+  <li class="conf theme"><a href="#" data-conf="theme"><i class="fa-regular fa-paint-roller"></i> Tema</a>
+    <ul class="themes">
+      <li class="sel" data-theme="focus"><a href="?theme=focus">Focus</a></li>
+      <li data-theme="focus-dark"><a href="?theme=focus-dark">Focus Dark</a></li>
+      <li data-theme="classic"><a href="?theme=classic">Claro</a></li>
+      <li data-theme="classic-dark"><a href="?theme=classic-dark">Oscuro</a></li>
+    </ul>
+  </li>
+  <li class="conf lang"><a href="#" data-conf="lang"><i class="fa-regular fa-language"></i> Idioma</a>
+    <ul class="langs">
+      <li class="sel"><a href="?lang=es">Espa\xF1ol</a></li>
+      <li><a href="?lang=en">English</a></li>
+    </ul>
+  </li>
+</ul>
+
+<ul>
+  <li class="guia_telefonica"><a href="#">Gu\xEDa Telef\xF3nica</a></li>
+  <li><a href="#">Pol\xEDticas de Uso</a></li>
+  <li><a href="#">Privacidad</a></li>
+  <li><a href="#"><i class="fa-regular fa-universal-access"></i> Accesibilidad</a></li>
+  <li class="brand"><a href="#" id="ucampus" target="_blank"><span>Centro Tecnol\xF3gico Ucampus</span></a></li>
+</ul>
+
+</div><!-- /#footer -->
+
+</div><!-- /#navigation-wrapper -->
+</div><!-- /#content-wrapper -->
+</div><!-- /#header-content-wrapper -->`;
+  var params2 = new URLSearchParams(location.search);
+  function urlCon(cambios) {
+    const q = new URLSearchParams(location.search);
+    for (const [k, v] of Object.entries(cambios)) q.set(k, v);
+    return "?" + q.toString();
+  }
+  function montar({ migas = [] } = {}) {
+    const conChrome = params2.get("chrome") !== "0";
+    let tema = params2.get("theme");
+    if (!TEMAS.includes(tema)) tema = "focus";
+    const version = params2.get("v") || "34708";
+    const css = params2.get("css") || `https://ucampus.uchile.cl/d/css/${tema}.style_v${version}.css`;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.media = "all";
+    link.href = css;
+    document.head.appendChild(link);
+    const resizer = document.createElement("script");
+    resizer.src = "https://ucampus.uchile.cl/b/externos/resizer.js";
+    document.head.appendChild(resizer);
+    const navbar = migas.map(
+      (m) => m.href ? `<li><a href="${m.href}">${m.texto}</a></li>` : `<li>${m.texto}</li>`
+    ).join("");
+    if (!conChrome) {
+      document.body.innerHTML = `<div id="mensajes" role="status"></div><div id="body" role="main" class="fcfm uparticipa ${tema}"></div>`;
+      return document.getElementById("body");
+    }
+    document.documentElement.className = "js no-touch cssanimations csstransforms csstransitions fontface generatedcontent svg inlinesvg";
+    document.body.className = "logeado";
+    document.body.dataset.dev = "logeado";
+    document.body.innerHTML = ARRIBA + `<ul id="navbar">${navbar}</ul><div id="mensajes" role="status"></div><div id="body" role="main" class="fcfm uparticipa ${tema}"></div>` + ABAJO;
+    document.querySelectorAll("#footer .themes li").forEach((li) => {
+      const t = li.dataset.theme;
+      li.classList.toggle("sel", t === tema);
+      const a = li.querySelector("a");
+      if (a && t) a.href = urlCon({ theme: t });
+    });
+    document.querySelectorAll("#menu .toggle").forEach((a) => {
+      a.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        document.getElementById(a.dataset.bloque)?.classList.toggle("active");
+      });
+    });
+    document.querySelectorAll("#footer .conf > a").forEach((a) => {
+      a.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        a.parentNode.classList.toggle("active");
+      });
+    });
+    document.getElementById("toggler")?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ["toggler", "menu", "navigation-wrapper", "navigation"].forEach((id) => {
+        document.getElementById(id)?.classList.toggle("active");
+      });
+    });
+    return document.getElementById("body");
+  }
+  function enlazarModulo(href) {
+    document.querySelectorAll("#favs li.uparticipa a, #servicios li#uparticipa a").forEach((a) => {
+      a.href = href;
+    });
+  }
+
+  // ── Componentes de interfaz compartidos: avisos, botones, barras y pie ──
+  function esc(valor) {
+    return String(valor).replace(
+      /[&<>"]/g,
+      (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]
+    );
+  }
+  function numero(n) {
+    return Number(n).toLocaleString("es-CL");
+  }
+  var AVISO = {
+    neutro: "maviso",
+    exito: "mexito",
+    error: "merror",
+    info: "minfo"
+  };
+  function aviso(texto, tipo = AVISO.neutro) {
+    const mensajes = document.getElementById("mensajes");
+    if (!mensajes) return;
+    mensajes.classList.add("js");
+    let caja = document.getElementById(tipo);
+    if (!caja) {
+      caja = document.createElement("div");
+      caja.id = tipo;
+      caja.innerHTML = '<a class="close" href="#">x</a><ul></ul>';
+      caja.addEventListener("click", () => caja.remove());
+      mensajes.appendChild(caja);
+    }
+    const li = document.createElement("li");
+    li.textContent = texto;
+    caja.querySelector("ul").appendChild(li);
+  }
+  var ETIQUETA_ESTADO = {
+    en_curso: "Abierta",
+    finalizada: "Finalizada",
+    en_pausa: "En pausa"
+  };
+  function pillEstado(estado) {
+    const clase = estado === "en_curso" ? "pill ok" : "pill ";
+    return `<div class="${clase}">${ETIQUETA_ESTADO[estado] || esc(estado)}</div>`;
+  }
+  function objeto(eleccion) {
+    return `
+<div class="objeto">
+  <h1>${esc(eleccion.nombre)} ${pillEstado(eleccion.estado)}</h1>
+  <h2>Desde el ${esc(eleccion.desde)} hasta el ${esc(eleccion.hasta)}</h2>
+</div>`;
+  }
+  function pestanas(clase, items) {
+    const lis = items.map((i) => {
+      const sel = i.activa ? ' class="sel"' : "";
+      return `<li${sel}><a href="${i.href || "#"}">${esc(i.etiqueta)}</a></li>`;
+    }).join("");
+    return `<ul class="${clase}">${lis}</ul>`;
+  }
+  var submodulo = (items) => pestanas("submodulo", items);
+  function espera(texto = "Cargando...") {
+    return `<div class="espera">${esc(texto)}</div>`;
+  }
+  function datosResponsive(filas) {
+    const cuerpo = filas.map(
+      (f) => `<div class="responsive-row "><span class="responsive-label">${esc(f.etiqueta)}</span> ${f.valor}</div>`
+    ).join("");
+    return `<div class="responsive-data only-movil no-print">${cuerpo}</div>`;
+  }
+  function boton(texto, href, { variante = "", activo = true } = {}) {
+    const clase = `boton${variante ? " " + variante : ""}`;
+    return activo ? `<a class="${clase}" href="${href}">${esc(texto)}</a>` : `<span class="${clase}" aria-disabled="true">${esc(texto)}</span>`;
+  }
+  function claseFilaUrna(papeleta, miPapeleta, indice) {
+    if (miPapeleta && papeleta === miPapeleta) return "warn";
+    return indice % 2 ? "even" : "odd";
+  }
+  function pie() {
+    return `<p class="center" style="margin-top: 4em"><a href="https://clcert.cl/" target="_blank" rel="noreferrer"><img src="media/logo_clcert.png" alt="CLCERT" height="48" style="vertical-align: middle"></a> <a href="https://uparticipa.cl/" target="_blank" rel="noreferrer" style="margin-left: 1.5em"><img src="media/logo_uparticipa.png" alt="UParticipa" height="32" style="vertical-align: middle"></a></p>`;
+  }
+
+  // ── Pantalla: informaciones de la votación ──
+  var raiz = montar({
+    migas: [{ texto: "UParticipa", href: enlace("1_listado.html") }, { texto: "\u2026" }]
+  });
+  enlazarModulo(enlace("1_listado.html"));
+  var params3 = new URLSearchParams(location.search);
+  var POR_PAGINA = 50;
+  var VISTAS = [
+    { id: "resultados", etiqueta: "Resultados" },
+    { id: "urna", etiqueta: "Urna electr\xF3nica" },
+    { id: "estadisticas", etiqueta: "Estad\xEDsticas" },
+    { id: "verificacion", etiqueta: "Verificaci\xF3n" }
+  ];
+  function vistaActual() {
+    const v = params3.get("vista");
+    return VISTAS.some((x) => x.id === v) ? v : "urna";
+  }
+  function tablaUrna(pagina, miPapeleta) {
+    const filas = pagina.filas.map(
+      (f, i) => `
+<tr class="${claseFilaUrna(f.papeleta, miPapeleta, i)}">
+  <td class="string responsive-main">${esc(f.papeleta)}
+    ${datosResponsive([
+        { etiqueta: "Voto Encriptado", valor: '<a href="#">Descargar</a>' }
+      ])}
+  </td>
+  <td class="center">${boton("Descargar", "#")}</td>
+</tr>`
+    ).join("");
+    const tabla = `
+<table class="detalle">
+<colgroup>
+  <col class="col0 string responsive-main">
+  <col class="col1 center">
+</colgroup>
+<thead class="sticky">
+<tr class="even">
+  <th class="string responsive-main">C\xF3digo de Papeleta</th>
+  <th class="center">Voto Encriptado</th>
+</tr>
+</thead>
+<tbody>${filas}</tbody>
+</table>`;
+    const nav = `<p>` + boton("Previo", enlaceAqui({ pagina: pagina.pagina - 1 }), {
+      activo: pagina.pagina > 1
+    }) + " " + boton("Siguiente", enlaceAqui({ pagina: pagina.pagina + 1 }), {
+      activo: pagina.pagina < pagina.total_paginas
+    }) + `</p><p>P\xE1gina ${pagina.pagina} de ${pagina.total_paginas} (Mostrando ${pagina.desde}-${pagina.hasta} de ${numero(pagina.total)} resultados)</p>`;
+    return tabla + nav;
+  }
+  async function renderUrna(eleccion, destino) {
+    destino.innerHTML = espera("Cargando urna...");
+    let p = parseInt(params3.get("pagina"), 10);
+    if (!p || p < 1) p = 1;
+    try {
+      const pagina = await api.urna(eleccion.id, { pagina: p, porPagina: POR_PAGINA });
+      if (!pagina.total) {
+        destino.innerHTML = `<p>La urna a\xFAn no registra votos.</p>`;
+        return;
+      }
+      destino.innerHTML = tablaUrna(pagina, eleccion.mi_papeleta);
+      if (eleccion.mi_papeleta) {
+        aviso(
+          "Su papeleta aparece destacada en la urna. Ese c\xF3digo le permite verificar que su voto fue registrado.",
+          AVISO.info
+        );
+      }
+    } catch (e) {
+      destino.innerHTML = "";
+      aviso(
+        e instanceof ErrorApi ? e.message : "Ocurri\xF3 un error inesperado.",
+        AVISO.error
+      );
+    }
+  }
+  async function main() {
+    if (!idEleccion) {
+      aviso("No se indic\xF3 qu\xE9 elecci\xF3n abrir.", AVISO.error);
+      return;
+    }
+    raiz.innerHTML = espera();
+    let eleccion;
+    try {
+      eleccion = await api.eleccion(idEleccion);
+    } catch (e) {
+      raiz.innerHTML = "";
+      aviso(
+        e instanceof ErrorApi ? e.message : "Ocurri\xF3 un error inesperado.",
+        AVISO.error
+      );
+      return;
+    }
+    document.querySelector("#navbar li:last-child").textContent = eleccion.nombre;
+    const actual = vistaActual();
+    const subs = submodulo(
+      VISTAS.map((v) => ({
+        etiqueta: v.etiqueta,
+        // Cambiar de vista reinicia la paginación.
+        href: enlaceAqui({ vista: v.id, pagina: null }),
+        activa: v.id === actual
+      }))
+    );
+    raiz.innerHTML = objeto(eleccion) + subs + `<div id="vista"></div>` + pie();
+    const destino = document.getElementById("vista");
+    if (actual === "urna") {
+      await renderUrna(eleccion, destino);
+      return;
+    }
+    destino.innerHTML = `<p>Pantalla pendiente de implementaci\xF3n.</p>`;
+  }
+  main();
+})();
+
+</script>
+</body>
+</html>
