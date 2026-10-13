@@ -723,19 +723,15 @@
     document.querySelector("#navbar li:last-child").textContent = eleccion.nombre;
     raiz.innerHTML = objeto(eleccion) + `<div id="proceso"></div>` + pie();
     const proceso = document.getElementById("proceso");
-    aviso("Proceso de encriptaci\xF3n de voto iniciado.", AVISO.neutro);
     proceso.innerHTML = espera("Encriptando su voto...");
     let cifrado;
     try {
       cifrado = await encriptar(opciones);
     } catch {
-      limpiarAvisos();
       aviso("El voto no pudo ser encriptado.", AVISO.error);
       proceso.innerHTML = `<p>${boton("Volver a la papeleta", enlace("2_cabina.html", { id: eleccion.id }))}</p>`;
       return;
     }
-    limpiarAvisos();
-    aviso("Su voto fue encriptado correctamente.", AVISO.exito);
     proceso.innerHTML = pantallaConfirmar(eleccion, opciones);
     document.querySelector("#proceso .boton.ok").addEventListener("click", async (ev) => {
       ev.preventDefault();
