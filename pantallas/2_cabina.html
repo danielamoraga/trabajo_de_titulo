@@ -6,54 +6,64 @@
 <title>UParticipa — Cabina de votación</title>
 
 <!--
-  MOCKUP FUNCIONAL AUTOCONTENIDO — Cabina de votación
+  UPARTICIPA — Cabina de votación
+  Mockup funcional autocontenido del Servicio Externo de UParticipa.
 
-  Se abre y funciona solo: no necesita backend ni instalar nada. Todo el
-  JavaScript va embebido y los datos están simulados en el propio
-  archivo.
+  Muestra la papeleta de la elección y valida la selección antes de pasar
+  al encriptado. La selección queda guardada como papeleta pendiente.
 
   CÓMO ABRIRLO
     python3 -m http.server 8000
     http://localhost:8000/2_cabina.html
 
-  Sirviéndolos por HTTP el flujo usa sessionStorage. Abriéndolos con
-  doble clic (file://) los navegadores bloquean sessionStorage, así que
-  se cae a window.name, que sobrevive la navegación dentro de la misma
-  pestaña. Funciona igual, pero conviene el servidor.
+  No necesita backend ni instalación: el JavaScript va embebido y los
+  datos están simulados en el propio archivo. El estado del flujo
+  (papeleta pendiente y votos emitidos) se guarda en sessionStorage. Si
+  el archivo se abre con doble clic (file://) y el navegador bloquea
+  sessionStorage, se usa window.name, que se mantiene mientras se navega
+  en la misma pestaña. Conviene usar el servidor.
 
-  LOS CUATRO ARCHIVOS
+  Para volver a probar desde cero sin cerrar la pestaña, ejecutar
+  reiniciarMock() en la consola del navegador.
+
+  LAS CUATRO PANTALLAS
     1_listado.html        elecciones habilitadas
     2_cabina.html         papeleta
     3_encriptado.html     encriptado, confirmación y emisión
-    4_informaciones.html  urna, estadísticas, resultados, verificación
+    4_informaciones.html  urna, estadísticas, resultados y verificación
 
-  Se enlazan entre sí, así que el camino se recorre completo desde el
-  listado. Los cuatro tienen que estar en la misma carpeta y con estos
-  nombres: si se renombran, los enlaces dejan de resolver.
+  Se enlazan entre sí, así que el flujo completo se recorre desde el
+  listado. Tienen que estar en la misma carpeta, junto a media/, y con
+  estos nombres: si se renombran, los enlaces dejan de funcionar.
 
-  PARÁMETROS
-    ?theme=focus | focus-dark | classic | classic-dark
-    ?chrome=0    muestra SOLO lo que produce el Servicio Externo
+  PARÁMETROS DE URL
+    ?theme=focus | focus-dark | classic | classic-dark   (por defecto focus)
+    ?chrome=0   muestra solo lo que produce el Servicio Externo
+    ?v=34708    versión de la hoja de estilos de UCampus
+    ?css=URL    hoja de estilos a usar en lugar de la de UCampus
 
-  ?chrome=0 es el importante para entender el alcance: el header, el
-  menú lateral y el footer los renderiza UCampus por fuera del iframe.
-  Todo lo que desaparece con ese parámetro no es responsabilidad del
-  servicio externo.
+  Los enlaces entre pantallas conservan theme, chrome y v.
 
-  Para volver a probar desde cero sin cerrar la pestaña:
-  reiniciarMock() en la consola del navegador.
+  ALCANCE
+  El header, el menú lateral y el footer institucional los renderiza
+  UCampus fuera del iframe; aquí están simulados solo para dar contexto.
+  Con ?chrome=0 desaparecen, y lo que queda es lo que le corresponde al
+  Servicio Externo, incluido su propio pie con los logos de CLCERT y
+  UParticipa (enlazados a clcert.cl y uparticipa.cl).
 
-  SIN ESTILOS PROPIOS
-  Ninguno de los cuatro archivos define estilos. Todos los componentes
-  salen de la hoja de estilos institucional de UCampus, que se carga en
-  tiempo de ejecución según el tema. En producción su URL viene en el
-  campo "css" del ticket.
+  ESTILOS
+  Los componentes usan la hoja de estilos institucional de UCampus, que
+  se carga en tiempo de ejecución según el tema. En producción su URL
+  viene en el campo "css" del ticket. No hay estilos propios, salvo unos
+  pocos en línea en el pie: separación superior, alineación vertical de
+  los logos y espacio entre ellos. El centrado usa la clase .center de
+  UCampus.
 -->
 </head>
 <body>
 <script>
 (() => {
-  // js/api.js
+  // ── API simulada: datos de prueba, votos guardados y enlaces entre pantallas ──
   var params = new URLSearchParams(location.search);
   var idEleccion = params.get("id");
   function enlace(pagina, extra = {}) {
@@ -310,7 +320,7 @@
     }
   };
 
-  // js/chrome.js
+  // ── Entorno UCampus simulado: header, menú lateral, footer y hoja de estilos ──
   var TEMAS = ["focus", "focus-dark", "classic", "classic-dark"];
   var ARRIBA = `<div id="header-content-wrapper">
 
@@ -368,7 +378,7 @@
         Esto es requisito operativo, no de c\xF3digo.
       -->
       <li class="uparticipa sel">
-        <a href="mock-completo.html"><h1><img src="media/uparticipa.png" alt="" class="icono"> UParticipa</h1></a>
+        <a href="1_listado.html"><h1><img src="media/uparticipa.png" alt="" class="icono"> UParticipa</h1></a>
       </li>
       <li class="uchile_votaciones ">
         <a href="#"><h1><img src="https://ucampus.uchile.cl/d/images/servicios/defecto_v34708.png" alt="" class="icono"> Votaciones</h1></a>
@@ -384,7 +394,7 @@
     <ul>
       <li id="forms" class=" forms"><a href="#">Formularios</a></li>
       <li id="visor_repositorio_normativo" class=" visor_repositorio_normativo"><a href="#">Repositorio Normativo Contralor\xEDa Universitaria</a></li>
-      <li id="uparticipa" class="sel uparticipa"><a href="mock-completo.html">UParticipa</a></li>
+      <li id="uparticipa" class="sel uparticipa"><a href="1_listado.html">UParticipa</a></li>
       <li id="uchile_votaciones" class=" uchile_votaciones"><a href="#">Votaciones</a></li>
       <li id="workflow" class=" workflow"><a href="#">Workflow</a></li>
     </ul>
@@ -550,7 +560,7 @@
     });
   }
 
-  // js/papeleta.js
+  // ── Papeleta pendiente: se guarda en la cabina y se lee en el encriptado ──
   var CLAVE = "papeleta_pendiente";
   function haySessionStorage() {
     try {
@@ -580,7 +590,7 @@
     window.name = JSON.stringify(datos);
   }
 
-  // js/ui.js
+  // ── Componentes de interfaz compartidos: avisos, botones, barras y pie ──
   function esc(valor) {
     return String(valor).replace(
       /[&<>"]/g,
@@ -634,10 +644,10 @@
     return activo ? `<a class="${clase}" href="${href}">${esc(texto)}</a>` : `<span class="${clase}" aria-disabled="true">${esc(texto)}</span>`;
   }
   function pie() {
-    return `<hr><p>Sistema de votaci\xF3n electr\xF3nica desarrollado por el <a href="https://clcert.cl" target="_blank" rel="noreferrer">CLCERT</a> de la Universidad de Chile. <a href="https://uparticipa.cl/" target="_blank" rel="noreferrer">M\xE1s informaci\xF3n sobre UParticipa</a>.</p>`;
+    return `<p class="center" style="margin-top: 4em"><a href="https://clcert.cl/" target="_blank" rel="noreferrer"><img src="media/logo_clcert.png" alt="CLCERT" height="48" style="vertical-align: middle"></a> <a href="https://uparticipa.cl/" target="_blank" rel="noreferrer" style="margin-left: 1.5em"><img src="media/logo_uparticipa.png" alt="UParticipa" height="32" style="vertical-align: middle"></a></p>`;
   }
 
-  // js/cabina.js
+  // ── Pantalla: cabina de votación ──
   var raiz = montar({
     migas: [{ texto: "UParticipa", href: enlace("1_listado.html") }, { texto: "\u2026" }]
   });
