@@ -41,11 +41,11 @@ justifica usar UParticipa en vez de UCampus.
 *Consecuencias.* Mayor acoplamiento con el repositorio de UParticipa;
 los despliegues hay que coordinarlos con el CLCERT.
 
-*Pendiente.* Verificar que el identificador coincida. UCampus entrega
-`pers_id` (habitualmente el RUT) y UParticipa identifica al votante con
-el claim que le entrega Cuenta Uchile vía OIDC. Si no son el mismo
-identificador, hay un problema de mapeo de identidad que conviene
-descubrir temprano.
+*Resuelto.* Se temía un problema de mapeo de identidad entre UCampus y
+UParticipa. No lo hay: el `id_externo` que entrega UCampus (el Pasaporte)
+es el mismo valor que `Voter.username` en el padrón de Psifos, que es por
+donde `get_elections_from_voter` busca al votante. Confirmado por el
+profesor guía (representante de UParticipa). No se usa `pers_id`.
 
 ### D-002 — Dos tipos de cliente en el backend de UParticipa
 **Estado:** firme
@@ -78,6 +78,14 @@ listado no escala y expondría la existencia de elecciones ajenas.
 
 *Consecuencia.* El frontend no decide habilitación: solo muestra lo que
 el backend le entrega. La lógica de padrón queda en un solo lugar.
+
+*Corrección.* El contexto suponía que UParticipa no tenía un listado de
+elecciones por votante. Sí lo tiene: `voters_panel` en `psifos-backend-op`
+devuelve las elecciones en cuyo padrón figura el votante autenticado
+(`crud.get_elections_from_voter`, que une `Election` con `Voter` por
+`username`). La decisión se mantiene, pero no requiere un endpoint nuevo:
+requiere reutilizar ese con la sesión de UCampus como forma de
+autenticación (D-002). Ver corrección 10.
 
 ### D-004 — Encriptado en el cliente, con Web Worker
 **Estado:** firme
@@ -469,7 +477,7 @@ ese iframe a `/b/externos/_resizer?height=...&width=...`.
    intercepta el clic y le manda el scroll al padre.
 
 ### D-027 — Cookies de sesión en iframe de tercero
-**Estado:** abierto
+**Estado:** cerrado por D-029
 
 *Contexto.* El servicio corre en un dominio distinto al de UCampus, así
 que una cookie de sesión es *third-party*.
@@ -477,8 +485,15 @@ que una cookie de sesión es *third-party*.
 *Riesgo.* Necesita `SameSite=None; Secure`, y aun así Safari y Firefox
 pueden bloquearla. Esto puede tumbar el flujo completo.
 
-*Alternativa.* Session id en el path de la URL de retorno (que es lo que
-hace el Repositorio Normativo con `?_token=`) y token en memoria.
+*Alternativa.* Session id en el path de la URL de retorno y token en
+memoria.
+
+*Corrección.* Se citaba al Repositorio Normativo como precedente de
+sesión por URL. Al inspeccionar el contenido de su iframe, usa `?_token=`
+solo en la primera carga: sus enlaces internos no lo llevan y sí llevan
+`csrf`, o sea que mantiene la sesión con cookie, igual que el ejemplo
+oficial en PHP. El precedente apunta a la cookie, no a la URL. Ver
+corrección 9 y D-029.
 
 *Prioridad.* Es lo primero que hay que probar en el ambiente de testing.
 
@@ -497,6 +512,91 @@ también declara `table{border-collapse:collapse}` globalmente, y
 `border-radius` no aplica a tablas con bordes colapsados. Es una regla
 muerta en la propia hoja de UCampus: las tablas del módulo real tampoco
 se ven redondeadas.
+
+### D-029 — Sesión por token en memoria, obtenida con un token de entrada de un solo uso
+**Estado:** firme; la forma de entregar la sesión de cabina está en revisión
+
+*Contexto.* El flujo de Servicios Externos obliga a que la credencial
+del votante viaje en la URL de retorno del paso 8: es lo único que
+UCampus le entrega al navegador. Esa URL queda expuesta en varios
+lugares: el historial, la cabecera `Referer`, los logs de servidor y,
+sobre todo, la propia URL de UCampus, que copia la ruta y el query del
+iframe en su hash (`setURL` → `history.replaceState`, con la URL que
+reporta `resizer.js`). Ahí la puede leer cualquier script que corra en la
+página de UCampus, incluido el de analítica que carga.
+
+*Alternativas.*
+1. Cookie `HttpOnly; Secure; SameSite=None`, como el ejemplo oficial en
+   PHP y los servicios de ADI.
+2. Token de sesión directo en la URL, guardado en memoria por el
+   frontend.
+3. Un token de entrada de un solo uso en la URL, que el frontend cambia
+   apenas carga por una sesión, y que guarda solo en memoria para
+   enviarla en la cabecera `Authorization: Bearer`.
+
+*Decisión.* La 3. El cambio ocurre en la primera llamada del frontend,
+`POST /psifos/api/lista-elecciones/ucampus` con el token de entrada en el
+cuerpo, que responde las elecciones junto con la **sesión de cabina**
+(15 min) y los datos de presentación (`css`, `theme`, `lang`). La primera
+versión usaba una ruta propia de canje (`POST /sesion`); se fusionó con la
+lista tras la reunión con el profesor guía.
+
+*En revisión.* Si la sesión de cabina se entrega como token en memoria
+(como hoy) o como cookie HTTP. La cookie tiene a favor que puede ser
+`HttpOnly` (un script inyectado no la lee) y que ADI demuestra que
+funciona en el iframe; en contra, los riesgos de la alternativa 1.
+
+*Razón.* Contra un *man in the middle* las tres son equivalentes: con
+HTTPS (exigido por UCampus) ninguna credencial se puede leer en tránsito,
+y sin HTTPS ninguna se salva. La diferencia está en otros riesgos:
+
+- La cookie es vulnerable a CSRF, porque `SameSite=None` (obligatorio en
+  el iframe) anula la protección del navegador, y Safari y Firefox pueden
+  bloquearla por ser de tercero (D-027).
+- El token directo queda válido durante toda la sesión en lugares
+  expuestos.
+- El token de entrada deja de servir apenas se usa: lo que se filtre
+  después por la URL ya no abre ninguna sesión.
+
+*Consecuencia para la autenticación del voto.* La criptografía de
+UParticipa protege el **secreto** del voto y la **integridad** del
+escrutinio, pero no la **autenticación** del votante: esa depende por
+completo de la sesión. Quien obtenga una sesión válida no puede saber qué
+votó la persona, pero sí puede votar en su nombre. Como UParticipa permite
+volver a votar y cuenta el último voto, puede **reemplazar** su voto, y
+la persona solo lo notaría si verifica su papeleta en la urna.
+
+*Condición para producción.* El token de entrada reduce la exposición a
+la ventana entre que la URL se publica y el frontend lo usa, pero no la
+elimina: la credencial sigue pasando por una URL que UCampus expone en su
+propia página. Mientras UCampus no cambie cómo procesa los Servicios
+Externos (por ejemplo, dejando de copiar la URL del iframe en su hash u
+ofreciendo un canal que no pase por la URL), la autenticación del voto
+depende de ganar esa carrera, y el módulo **no puede pasar a producción**
+para votaciones vinculantes.
+
+*Complementos.* Token de UCampus de un solo uso, sesión corta (15 min),
+y una CSP estricta y sin scripts de terceros en el frontend, porque un
+token en memoria sí es legible por un script inyectado (XSS).
+
+### D-030 — Parámetro `token` en las llamadas con UCampus
+**Estado:** firme
+
+*Contexto.* La documentación de Servicios Externos llama `ticket` al
+parámetro con que UCampus llama al servicio (`URL?ticket=XXX`) y con que
+el servicio consulta los datos (`/b/externos/datos?ticket=`).
+
+*Decisión.* Se usa `token` en las dos llamadas:
+`GET /psifos/api/ucampus-entry?token=` y
+`GET /b/externos/datos?token=`. La URL de retorno también lleva `?token=`
+(el token de entrada de D-029), como hacen los servicios de ADI con
+`?_token=`.
+
+*Razón.* Confirmado por el profesor guía: UCampus acepta `token`.
+
+*Lo que sí sigue la documentación.* La consulta a `/b/externos/datos` es
+un GET, como en el ejemplo oficial en PHP, y los datos se leen de
+`id_externo`.
 
 ---
 
@@ -517,6 +617,8 @@ inspeccionar el DOM y la hoja de estilos.
 | 6 | `ul.paginar` era el paginador de UCampus | Venía de dentro del iframe del Repositorio Normativo, o sea del servicio externo de ADI | Origen del DOM capturado |
 | 7 | El encabezado eran `h1`/`h2` sueltos | Van envueltos en `div.objeto`, que es lo que da negrita y gris | DOM de `uchile_votaciones/resultado` |
 | 8 | Truncar el código de papeleta era aceptable | UParticipa lo muestra completo; truncarlo rompía la verificabilidad | Urna real de UParticipa |
+| 9 | El Repositorio Normativo mantenía la sesión por la URL (`?_token=`) | Usa el token solo en la primera carga y después una cookie: sus enlaces internos no llevan `_token` y sí `csrf` | Contenido del iframe de ADI |
+| 10 | UParticipa no tenía un listado de elecciones por votante; había que pedírselo al CLCERT (D-003) | Existe: `voters_panel` en `psifos-backend-op` filtra por el padrón del votante | Código de `voter_routes.py` y `crud.get_elections_from_voter` |
 
 ---
 
@@ -528,6 +630,11 @@ inspeccionar el DOM y la hoja de estilos.
   capturas disponibles están finalizadas.
 - Si UCampus tiene un componente de paginación propio.
 - CORS de `/d/font/` para las fuentes (D-025).
-- Cookies de tercero en el iframe (D-027).
-- Coincidencia de identificadores entre `pers_id` y el claim de OIDC
-  (D-001).
+- Que UCampus deje de exponer la URL del iframe en su propia URL, o
+  alguna alternativa que no pase por ella: condición para producción
+  (D-029).
+- `PanelResponseBase` y los valores de los enums de Psifos
+  (`ElectionStatusEnum`, `ElectionTypeEnum`).
+- Fechas programadas de apertura y cierre: Psifos solo registra las
+  reales en el log, así que una elección abierta no tiene fecha de
+  cierre que mostrar.
