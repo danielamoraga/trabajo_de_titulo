@@ -1,0 +1,196 @@
+<html class=" no-touchevents no-forcetouch" style=""><head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+	<script type="text/javascript" src="https://servicios.adi.ing.uchile.cl/d/js/jquery.js?v=24"></script>
+	<link rel="stylesheet" href="https://servicios.adi.ing.uchile.cl/d/css/normalize.css?v=24" type="text/css">
+	<link rel="stylesheet" href="https://ucampus.uchile.cl/d/css/focus.style_externo_v34719.css" type="text/css">
+    <link rel="stylesheet" href="https://servicios.adi.ing.uchile.cl/d/css/style_ucampus.css?v=24" type="text/css">
+    <link rel="stylesheet" href="https://servicios.adi.ing.uchile.cl/d/css/print.css?v=24" media="print" type="text/css">
+	
+	<link rel="apple-touch-icon" sizes="57x57" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-57x57.png">
+	<link rel="apple-touch-icon" sizes="60x60" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-60x60.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="76x76" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-76x76.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-114x114.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="144x144" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-144x144.png">
+	<link rel="apple-touch-icon" sizes="152x152" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-152x152.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-180x180.png">
+	<link rel="shortcut icon" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/favicon.ico">
+	<link rel="icon" type="image/png" sizes="192x192" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/android-icon-192x192.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="96x96" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/favicon-96x96.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/favicon-16x16.png">
+	<meta name="msapplication-TileColor" content="#ffffff">
+	<meta name="msapplication-TileImage" content="https://servicios.adi.ing.uchile.cl/d/img/favicon/ms-icon-144x144.png">
+	<meta name="theme-color" content="#ffffff">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+</head>
+<body>
+<script>
+    kernel.csrf = '9d3ae6f01c';
+</script>
+<div id="body">
+<div id="mensajes"></div>
+<div id="navegacion">
+</div>
+
+<h1> Nueva Solicitud </h1>
+
+<form method="POST" id="form_visitas">
+<div class="">
+<table class="form" id="obj_7263932"><colgroup><col class="col0 undefined"><col class="col1 undefined"></colgroup><caption></caption>
+    <tbody><tr class="separador even">
+        <td colspan="2">Datos de contacto</td>
+    </tr>
+
+    <tr class="odd">
+        <th style="width:250px">Nombre Completo:</th>
+        <td style="width:350px">
+            <input type="hidden" name="formulario[nombre]" value="Nombre Apellido Apellido">Nombre Apellido Apellido        </td>
+    </tr>
+    <input type="hidden" name="formulario[es_rut]" value="1">
+    <tr id="rut" class="even">
+        <th>Rut:</th>
+        <td>
+            <input id="rut_input" type="hidden" name="formulario[rut]" value="11111111-1">11111111-1        </td>
+    </tr>
+    <tr id="pasaporte" class="req odd" style="display: none;">
+        <th>Pasaporte:</th>
+        <td>
+            <input id="pasaporte_input" type="hidden" name="formulario[pasaporte]" value="">        </td>
+    </tr>
+    <tr class="req even">
+        <th>Correo electrónico</th>
+        <td><input type="text" name="formulario[email]" value="usuario@ug.uchile.cl" placeholder="ejemplo@gmail.com"></td>
+    </tr>
+    <tr class="req odd">
+        <th>Motivo de ingreso:</th>
+        <td><select name="formulario[motivo]" id="formulario[motivo]" onchange="" class="chosen" style="display: none;"><option value="" selected="selected">Seleccione motivo</option><option value="1">Asistencia a curso desde otra facultad</option><option value="2">Asistencia a evento</option><option value="3">Visita general</option><option value="4">Trámites administrativos</option><option value="5">TUI extraviada</option><option value="6">Otro</option></select><div class="chosen-container chosen-container-single" title="" id="formulario_motivo__chosen" style="width: 729px;"><a class="chosen-single">
+  <span>Seleccione motivo</span>
+  <div><b></b></div>
+</a>
+<div class="chosen-drop">
+  <div class="chosen-search">
+    <input class="chosen-search-input" type="text" autocomplete="off">
+  </div>
+  <ul class="chosen-results"></ul>
+</div></div></td>
+    </tr>
+    <tr class="req even">
+        <th>Unidad a la que asistirá</th>
+        <td><select name="formulario[depto]" id="formulario[depto]" onchange="" class="chosen" style="display: none;"><optgroup label=""><option value="">Seleccionar una unidad</option></optgroup><optgroup label="Estudiantes"><option value="Estudiantes - Escuela de Pregrado">Escuela de Pregrado</option><option value="Estudiantes - Escuela de Postgrado">Escuela de Postgrado</option></optgroup><optgroup label="Funcionarios"><option value="AMTC">AMTC</option><option value="Centro Modelamiento Matemático (CMM)">Centro Modelamiento Matemático (CMM)</option><option value="Centro Sismológico Nacional (CSN)">Centro Sismológico Nacional (CSN)</option><option value="Centro Tecnológico Ucampus">Centro Tecnológico Ucampus</option><option value="Centro de Energía">Centro de Energía</option><option value="Departamento de Astronomía">Departamento de Astronomía</option><option value="Departamento de Ciencias de la Computación">Departamento de Ciencias de la Computación</option><option value="Departamento de Física">Departamento de Física</option><option value="Departamento de Geofísica">Departamento de Geofísica</option><option value="Departamento de Geología">Departamento de Geología</option><option value="Departamento de Ingeniería Civil">Departamento de Ingeniería Civil</option><option value="Departamento de Ingeniería Eléctrica">Departamento de Ingeniería Eléctrica</option><option value="Departamento de Ingeniería Industrial">Departamento de Ingeniería Industrial</option><option value="Departamento de Ingeniería Matemáticas">Departamento de Ingeniería Matemáticas</option><option value="Departamento de Ingeniería Mecánica">Departamento de Ingeniería Mecánica</option><option value="Departamento de Ingeniería Química, Biotecnología y Materiales">Departamento de Ingeniería Química, Biotecnología y Materiales</option><option value="Departamento de Ingeniería de Minas">Departamento de Ingeniería de Minas</option><option value="Escuela de Ingeniería y Ciencias">Escuela de Ingeniería y Ciencias</option><option value="Escuela de Postgrado">Escuela de Postgrado</option><option value="IDIEM">IDIEM</option><option value="NIC Chile">NIC Chile</option><option value="Servicios Centrales">Servicios Centrales</option></optgroup><option value="otro">Otra</option></select><div class="chosen-container chosen-container-single" title="" id="formulario_depto__chosen" style="width: 776px;"><a class="chosen-single">
+  <span>Seleccionar una unidad</span>
+  <div><b></b></div>
+</a>
+<div class="chosen-drop">
+  <div class="chosen-search">
+    <input class="chosen-search-input" type="text" autocomplete="off">
+  </div>
+  <ul class="chosen-results"></ul>
+</div></div></td>
+    </tr>
+    <tr class="req odd">
+        <th>Día que asistirá a la FCFM</th>
+        <td>
+            <input id="formulario[fecha]" type="text" class="calendario" autocomplete="off" name="formulario[fecha]" value="" placeholder="dd-mm-yyyy">
+        </td>
+    </tr>
+    </tbody></table>
+
+    <br>
+    <input type="hidden" name="csrf" value="9d3ae6f01c"><input class="block" rel="Enviando.." type="submit" name="accion" value="Enviar">
+</div>
+</form>
+
+<script>
+    function changeDocInput(es_rut)
+    {
+        if (es_rut === '1')
+        {
+            $( "#rut" ).show( 200 );
+            $( "#rut").addClass('req');
+            $( "#pasaporte" ).hide( 1 );
+            $( "#pasaporte" ).removeClass('req');
+        }
+        else
+        {
+            $( "#rut" ).hide( 1 );
+            $( "#rut").removeClass('req');
+            $( "#pasaporte" ).show( 200 );
+            $( "#pasaporte" ).addClass('req');
+        }
+    }
+
+    let $currentDate = new Date();
+    let $maxDate = new Date($currentDate.getTime() + 1 *24*60*60*1000);
+    let $minDate = new Date($currentDate.getTime());
+    $( document.getElementById( "formulario[fecha]" ) ).datetimepicker({
+        lang: 'es',
+        timepicker:false,
+        format:'d-m-Y',
+        value: $currentDate,
+        timepickerScrollbar:false,
+        scrollMonth:false,
+        dayOfWeekStart:1,
+        minDate: $minDate,
+        maxDate: $maxDate,
+    });
+</script>
+
+<h1>Solicitante</h1>
+<table id="obj_9653955"><colgroup><col class="col0 undefined"><col class="col1 undefined"></colgroup><caption></caption>
+  <tbody><tr class="even">
+    <th style="width:150px">Foto</th>
+    <td><img src="https://ucampus.uchile.cl/d/r/usuario/78/78d966d7a78fc064f3c5489bd5644ae0/perfil/81f21044d5155559728756be092ad846.jpg" class="foto "></td>
+  </tr>
+  <tr class="odd">
+    <th>Nombre</th>
+    <td>Nombre Apellido Apellido</td>
+  </tr>
+  <tr class="even">
+    <th>RUT o Pasaporte</th>
+    <td>11111111-1</td>
+  </tr>
+</tbody></table>
+
+<h1>Solicitudes</h1>
+
+<div class="warn">No existen solicitudes válidas</div>
+
+
+
+<script>
+  // Inicializar timer
+  var myVar = setInterval(myTimer, 1000);
+  function myTimer() { $("#timeClock").html(new Date().toLocaleTimeString()); }
+</script>
+    <script type="text/javascript" src="https://ucampus.uchile.cl/b/externos/resizer.js"></script>
+<div class="footer">
+    <img src="https://servicios.adi.ing.uchile.cl/d/img/logo_fcfm_footer.png">
+    <img src="https://servicios.adi.ing.uchile.cl/d/img/logo_campusdigital_footer.png">
+    <div class="info_footer">
+        <div>
+            Desarrollado por
+            <br>
+            <a href=" https://adi.ing.uchile.cl/?web02#contacto" target="_blank">
+                ADI - Área de Infotecnologías
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-Q388ECQML2"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+
+gtag('config','G-Q388ECQML2');
+</script>
+
+
+
+</div><div class="xdsoft_datetimepicker xdsoft_noselect xdsoft_"><div class="xdsoft_datepicker active"><div class="xdsoft_monthpicker"><button type="button" class="xdsoft_prev" style="visibility: visible;"></button><button type="button" class="xdsoft_today_button" style="visibility: visible;">Hoy</button><div class="xdsoft_label xdsoft_month"><span>Octubre</span><div class="xdsoft_select xdsoft_monthselect xdsoft_scroller_box"><div style="margin-top: 0px;"><div class="xdsoft_option " data-value="0">Enero</div><div class="xdsoft_option " data-value="1">Febrero</div><div class="xdsoft_option " data-value="2">Marzo</div><div class="xdsoft_option " data-value="3">Abril</div><div class="xdsoft_option " data-value="4">Mayo</div><div class="xdsoft_option " data-value="5">Junio</div><div class="xdsoft_option " data-value="6">Julio</div><div class="xdsoft_option " data-value="7">Agosto</div><div class="xdsoft_option " data-value="8">Septiembre</div><div class="xdsoft_option xdsoft_current" data-value="9">Octubre</div><div class="xdsoft_option " data-value="10">Noviembre</div><div class="xdsoft_option " data-value="11">Diciembre</div></div><div class="xdsoft_scrollbar"><div class="xdsoft_scroller" style="height: 10px; margin-top: 0px;"></div></div></div><i></i></div><div class="xdsoft_label xdsoft_year"><span>2026</span><div class="xdsoft_select xdsoft_yearselect xdsoft_scroller_box"><div style="margin-top: 0px;"><div class="xdsoft_option " data-value="1950">1950</div><div class="xdsoft_option " data-value="1951">1951</div><div class="xdsoft_option " data-value="1952">1952</div><div class="xdsoft_option " data-value="1953">1953</div><div class="xdsoft_option " data-value="1954">1954</div><div class="xdsoft_option " data-value="1955">1955</div><div class="xdsoft_option " data-value="1956">1956</div><div class="xdsoft_option " data-value="1957">1957</div><div class="xdsoft_option " data-value="1958">1958</div><div class="xdsoft_option " data-value="1959">1959</div><div class="xdsoft_option " data-value="1960">1960</div><div class="xdsoft_option " data-value="1961">1961</div><div class="xdsoft_option " data-value="1962">1962</div><div class="xdsoft_option " data-value="1963">1963</div><div class="xdsoft_option " data-value="1964">1964</div><div class="xdsoft_option " data-value="1965">1965</div><div class="xdsoft_option " data-value="1966">1966</div><div class="xdsoft_option " data-value="1967">1967</div><div class="xdsoft_option " data-value="1968">1968</div><div class="xdsoft_option " data-value="1969">1969</div><div class="xdsoft_option " data-value="1970">1970</div><div class="xdsoft_option " data-value="1971">1971</div><div class="xdsoft_option " data-value="1972">1972</div><div class="xdsoft_option " data-value="1973">1973</div><div class="xdsoft_option " data-value="1974">1974</div><div class="xdsoft_option " data-value="1975">1975</div><div class="xdsoft_option " data-value="1976">1976</div><div class="xdsoft_option " data-value="1977">1977</div><div class="xdsoft_option " data-value="1978">1978</div><div class="xdsoft_option " data-value="1979">1979</div><div class="xdsoft_option " data-value="1980">1980</div><div class="xdsoft_option " data-value="1981">1981</div><div class="xdsoft_option " data-value="1982">1982</div><div class="xdsoft_option " data-value="1983">1983</div><div class="xdsoft_option " data-value="1984">1984</div><div class="xdsoft_option " data-value="1985">1985</div><div class="xdsoft_option " data-value="1986">1986</div><div class="xdsoft_option " data-value="1987">1987</div><div class="xdsoft_option " data-value="1988">1988</div><div class="xdsoft_option " data-value="1989">1989</div><div class="xdsoft_option " data-value="1990">1990</div><div class="xdsoft_option " data-value="1991">1991</div><div class="xdsoft_option " data-value="1992">1992</div><div class="xdsoft_option " data-value="1993">1993</div><div class="xdsoft_option " data-value="1994">1994</div><div class="xdsoft_option " data-value="1995">1995</div><div class="xdsoft_option " data-value="1996">1996</div><div class="xdsoft_option " data-value="1997">1997</div><div class="xdsoft_option " data-value="1998">1998</div><div class="xdsoft_option " data-value="1999">1999</div><div class="xdsoft_option " data-value="2000">2000</div><div class="xdsoft_option " data-value="2001">2001</div><div class="xdsoft_option " data-value="2002">2002</div><div class="xdsoft_option " data-value="2003">2003</div><div class="xdsoft_option " data-value="2004">2004</div><div class="xdsoft_option " data-value="2005">2005</div><div class="xdsoft_option " data-value="2006">2006</div><div class="xdsoft_option " data-value="2007">2007</div><div class="xdsoft_option " data-value="2008">2008</div><div class="xdsoft_option " data-value="2009">2009</div><div class="xdsoft_option " data-value="2010">2010</div><div class="xdsoft_option " data-value="2011">2011</div><div class="xdsoft_option " data-value="2012">2012</div><div class="xdsoft_option " data-value="2013">2013</div><div class="xdsoft_option " data-value="2014">2014</div><div class="xdsoft_option " data-value="2015">2015</div><div class="xdsoft_option " data-value="2016">2016</div><div class="xdsoft_option " data-value="2017">2017</div><div class="xdsoft_option " data-value="2018">2018</div><div class="xdsoft_option " data-value="2019">2019</div><div class="xdsoft_option " data-value="2020">2020</div><div class="xdsoft_option " data-value="2021">2021</div><div class="xdsoft_option " data-value="2022">2022</div><div class="xdsoft_option " data-value="2023">2023</div><div class="xdsoft_option " data-value="2024">2024</div><div class="xdsoft_option " data-value="2025">2025</div><div class="xdsoft_option xdsoft_current" data-value="2026">2026</div><div class="xdsoft_option " data-value="2027">2027</div><div class="xdsoft_option " data-value="2028">2028</div><div class="xdsoft_option " data-value="2029">2029</div><div class="xdsoft_option " data-value="2030">2030</div><div class="xdsoft_option " data-value="2031">2031</div><div class="xdsoft_option " data-value="2032">2032</div><div class="xdsoft_option " data-value="2033">2033</div><div class="xdsoft_option " data-value="2034">2034</div><div class="xdsoft_option " data-value="2035">2035</div><div class="xdsoft_option " data-value="2036">2036</div><div class="xdsoft_option " data-value="2037">2037</div><div class="xdsoft_option " data-value="2038">2038</div><div class="xdsoft_option " data-value="2039">2039</div><div class="xdsoft_option " data-value="2040">2040</div><div class="xdsoft_option " data-value="2041">2041</div><div class="xdsoft_option " data-value="2042">2042</div><div class="xdsoft_option " data-value="2043">2043</div><div class="xdsoft_option " data-value="2044">2044</div><div class="xdsoft_option " data-value="2045">2045</div><div class="xdsoft_option " data-value="2046">2046</div><div class="xdsoft_option " data-value="2047">2047</div><div class="xdsoft_option " data-value="2048">2048</div><div class="xdsoft_option " data-value="2049">2049</div><div class="xdsoft_option " data-value="2050">2050</div></div><div class="xdsoft_scrollbar"><div class="xdsoft_scroller" style="height: 10px; margin-top: 0px;"></div></div></div><i></i></div><button type="button" class="xdsoft_next" style="visibility: visible;"></button></div><div class="xdsoft_calendar"><table><thead><tr><th>Lun</th><th>Mar</th><th>Mié</th><th>Jue</th><th>Vie</th><th>Sáb</th><th>Dom</th></tr></thead><tbody><tr><td data-date="28" data-month="8" data-year="2026" class="xdsoft_date xdsoft_day_of_week1 xdsoft_date xdsoft_disabled xdsoft_other_month" title=""><div>28</div></td><td data-date="29" data-month="8" data-year="2026" class="xdsoft_date xdsoft_day_of_week2 xdsoft_date xdsoft_disabled xdsoft_other_month" title=""><div>29</div></td><td data-date="30" data-month="8" data-year="2026" class="xdsoft_date xdsoft_day_of_week3 xdsoft_date xdsoft_disabled xdsoft_other_month" title=""><div>30</div></td><td data-date="1" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week4 xdsoft_date xdsoft_disabled" title=""><div>1</div></td><td data-date="2" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week5 xdsoft_date xdsoft_disabled" title=""><div>2</div></td><td data-date="3" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week6 xdsoft_date xdsoft_disabled xdsoft_weekend" title=""><div>3</div></td><td data-date="4" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week0 xdsoft_date xdsoft_disabled xdsoft_weekend" title=""><div>4</div></td></tr><tr><td data-date="5" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week1 xdsoft_date xdsoft_disabled" title=""><div>5</div></td><td data-date="6" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week2 xdsoft_date xdsoft_disabled" title=""><div>6</div></td><td data-date="7" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week3 xdsoft_date xdsoft_disabled" title=""><div>7</div></td><td data-date="8" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week4 xdsoft_date xdsoft_disabled" title=""><div>8</div></td><td data-date="9" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week5 xdsoft_date xdsoft_disabled" title=""><div>9</div></td><td data-date="10" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week6 xdsoft_date xdsoft_disabled xdsoft_weekend" title=""><div>10</div></td><td data-date="11" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week0 xdsoft_date xdsoft_disabled xdsoft_weekend" title=""><div>11</div></td></tr><tr><td data-date="12" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week1 xdsoft_date xdsoft_disabled" title=""><div>12</div></td><td data-date="13" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week2 xdsoft_date xdsoft_current xdsoft_today" title=""><div>13</div></td><td data-date="14" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week3 xdsoft_date" title=""><div>14</div></td><td data-date="15" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week4 xdsoft_date xdsoft_disabled" title=""><div>15</div></td><td data-date="16" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week5 xdsoft_date xdsoft_disabled" title=""><div>16</div></td><td data-date="17" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week6 xdsoft_date xdsoft_disabled xdsoft_weekend" title=""><div>17</div></td><td data-date="18" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week0 xdsoft_date xdsoft_disabled xdsoft_weekend" title=""><div>18</div></td></tr><tr><td data-date="19" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week1 xdsoft_date xdsoft_disabled" title=""><div>19</div></td><td data-date="20" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week2 xdsoft_date xdsoft_disabled" title=""><div>20</div></td><td data-date="21" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week3 xdsoft_date xdsoft_disabled" title=""><div>21</div></td><td data-date="22" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week4 xdsoft_date xdsoft_disabled" title=""><div>22</div></td><td data-date="23" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week5 xdsoft_date xdsoft_disabled" title=""><div>23</div></td><td data-date="24" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week6 xdsoft_date xdsoft_disabled xdsoft_weekend" title=""><div>24</div></td><td data-date="25" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week0 xdsoft_date xdsoft_disabled xdsoft_weekend" title=""><div>25</div></td></tr><tr><td data-date="26" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week1 xdsoft_date xdsoft_disabled" title=""><div>26</div></td><td data-date="27" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week2 xdsoft_date xdsoft_disabled" title=""><div>27</div></td><td data-date="28" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week3 xdsoft_date xdsoft_disabled" title=""><div>28</div></td><td data-date="29" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week4 xdsoft_date xdsoft_disabled" title=""><div>29</div></td><td data-date="30" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week5 xdsoft_date xdsoft_disabled" title=""><div>30</div></td><td data-date="31" data-month="9" data-year="2026" class="xdsoft_date xdsoft_day_of_week6 xdsoft_date xdsoft_disabled xdsoft_weekend" title=""><div>31</div></td><td data-date="1" data-month="10" data-year="2026" class="xdsoft_date xdsoft_day_of_week0 xdsoft_date xdsoft_disabled xdsoft_other_month xdsoft_weekend" title=""><div>1</div></td></tr></tbody></table></div><button type="button" class="xdsoft_save_selected blue-gradient-button" style="display: none;">Save Selected</button></div><div class="xdsoft_timepicker"><button type="button" class="xdsoft_prev"></button><div class="xdsoft_time_box xdsoft_scroller_box"><div class="xdsoft_time_variant" style="margin-top: 0px;"><div class="xdsoft_time " data-hour="0" data-minute="0">00:00</div><div class="xdsoft_time " data-hour="1" data-minute="0">01:00</div><div class="xdsoft_time " data-hour="2" data-minute="0">02:00</div><div class="xdsoft_time " data-hour="3" data-minute="0">03:00</div><div class="xdsoft_time xdsoft_current" data-hour="4" data-minute="0">04:00</div><div class="xdsoft_time " data-hour="5" data-minute="0">05:00</div><div class="xdsoft_time " data-hour="6" data-minute="0">06:00</div><div class="xdsoft_time " data-hour="7" data-minute="0">07:00</div><div class="xdsoft_time " data-hour="8" data-minute="0">08:00</div><div class="xdsoft_time " data-hour="9" data-minute="0">09:00</div><div class="xdsoft_time " data-hour="10" data-minute="0">10:00</div><div class="xdsoft_time " data-hour="11" data-minute="0">11:00</div><div class="xdsoft_time " data-hour="12" data-minute="0">12:00</div><div class="xdsoft_time " data-hour="13" data-minute="0">13:00</div><div class="xdsoft_time " data-hour="14" data-minute="0">14:00</div><div class="xdsoft_time " data-hour="15" data-minute="0">15:00</div><div class="xdsoft_time " data-hour="16" data-minute="0">16:00</div><div class="xdsoft_time " data-hour="17" data-minute="0">17:00</div><div class="xdsoft_time " data-hour="18" data-minute="0">18:00</div><div class="xdsoft_time " data-hour="19" data-minute="0">19:00</div><div class="xdsoft_time " data-hour="20" data-minute="0">20:00</div><div class="xdsoft_time " data-hour="21" data-minute="0">21:00</div><div class="xdsoft_time " data-hour="22" data-minute="0">22:00</div><div class="xdsoft_time " data-hour="23" data-minute="0">23:00</div></div><div class="xdsoft_scrollbar" style="display: none;"><div class="xdsoft_scroller" style="height: 10px; margin-top: 0px;"></div></div></div><button type="button" class="xdsoft_next"></button></div></div><iframe id="resizer_6acdd0ebe111f" src="https://ucampus.uchile.cl/b/externos/_resizer?_LB=uchile01-int&amp;height=1060&amp;width=799&amp;rdm=resizer_6acdd0ebe111f&amp;url=https%3A%2F%2Fservicios.adi.ing.uchile.cl%2Fm%2Ffcfm_formulario_visitas%2F%3F" style="width: 0px; height: 0px; visibility: hidden;"></iframe></body></html>

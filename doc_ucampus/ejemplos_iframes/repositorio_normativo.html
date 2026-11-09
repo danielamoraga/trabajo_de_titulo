@@ -1,0 +1,364 @@
+<html class=" no-touchevents no-forcetouch" style=""><head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+	<script type="text/javascript" src="https://servicios.adi.ing.uchile.cl/d/js/jquery.js?v=24"></script>
+	<link rel="stylesheet" href="https://servicios.adi.ing.uchile.cl/d/css/normalize.css?v=24" type="text/css">
+	<link rel="stylesheet" href="https://ucampus.uchile.cl/d/css/focus.style_externo_v34719.css" type="text/css">
+    <link rel="stylesheet" href="https://servicios.adi.ing.uchile.cl/d/css/style_ucampus.css?v=24" type="text/css">
+    <link rel="stylesheet" href="https://servicios.adi.ing.uchile.cl/d/css/print.css?v=24" media="print" type="text/css">
+	
+	<link rel="apple-touch-icon" sizes="57x57" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-57x57.png">
+	<link rel="apple-touch-icon" sizes="60x60" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-60x60.png">
+	<link rel="apple-touch-icon" sizes="72x72" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-72x72.png">
+	<link rel="apple-touch-icon" sizes="76x76" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-76x76.png">
+	<link rel="apple-touch-icon" sizes="114x114" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-114x114.png">
+	<link rel="apple-touch-icon" sizes="120x120" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-120x120.png">
+	<link rel="apple-touch-icon" sizes="144x144" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-144x144.png">
+	<link rel="apple-touch-icon" sizes="152x152" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-152x152.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/apple-icon-180x180.png">
+	<link rel="shortcut icon" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/favicon.ico">
+	<link rel="icon" type="image/png" sizes="192x192" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/android-icon-192x192.png">
+	<link rel="icon" type="image/png" sizes="32x32" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/favicon-32x32.png">
+	<link rel="icon" type="image/png" sizes="96x96" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/favicon-96x96.png">
+	<link rel="icon" type="image/png" sizes="16x16" href="https://servicios.adi.ing.uchile.cl/d/img/favicon/favicon-16x16.png">
+	<meta name="msapplication-TileColor" content="#ffffff">
+	<meta name="msapplication-TileImage" content="https://servicios.adi.ing.uchile.cl/d/img/favicon/ms-icon-144x144.png">
+	<meta name="theme-color" content="#ffffff">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+</head>
+<body>
+<script>
+    kernel.csrf = '589597fc53';
+</script>
+<div id="body">
+<div id="mensajes"></div>
+<div id="navegacion">
+</div>
+
+
+
+
+
+
+<div id="disclaimer" class="caja warn">
+    <p>Este repositorio se encuentra en etapa de construcción, por lo que los documentos desplegados en este visor no corresponden a la totalidad de documentos legalizados que existen</p>
+</div>
+
+<form class="buscar" method="POST" action="buscador" id="obj_48654">
+    <input type="text" name="query" value="" placeholder="Buscar decreto" size="20" class="">    <input class="boton" type="submit" value="Buscar">
+    <input type="hidden" name="csrf" value="589597fc53"><input type="hidden" name="accion" value="buscar">
+    <label><input type="radio" name="tipo_busqueda" value="numero" checked="checked">Número o Título</label>&nbsp; &nbsp;<label><input type="radio" name="tipo_busqueda" value="texto">Buscar por texto</label>
+</form>
+
+<div class="warn">Documentos ordenados por fecha de publicación (más reciente primero)</div>
+
+<ul class="paginar"><li class="actual"><a href="buscador?csrf=589597fc53&amp;accion=buscar&amp;query=*:*&amp;tipo_busqueda=numero&amp;p=1">1</a></li><li class="siguiente"><a href="buscador?csrf=589597fc53&amp;accion=buscar&amp;query=*:*&amp;tipo_busqueda=numero&amp;p=2">2</a></li><li class="siguiente"><a href="buscador?csrf=589597fc53&amp;accion=buscar&amp;query=*:*&amp;tipo_busqueda=numero&amp;p=3">3</a></li><li class="siguiente"><a href="buscador?csrf=589597fc53&amp;accion=buscar&amp;query=*:*&amp;tipo_busqueda=numero&amp;p=4">4</a></li><li class="siguiente"><a href="buscador?csrf=589597fc53&amp;accion=buscar&amp;query=*:*&amp;tipo_busqueda=numero&amp;p=5">5</a></li><li class="flecha"><a href="buscador?csrf=589597fc53&amp;accion=buscar&amp;query=*:*&amp;tipo_busqueda=numero&amp;p=2">&gt;</a></li><li class="siguiente ultimo"><a href="buscador?csrf=589597fc53&amp;accion=buscar&amp;query=*:*&amp;tipo_busqueda=numero&amp;p=26">26</a></li><li class="indice">
+	&nbsp;&nbsp;Ir a <input type="text" size="2" id="__paginar__6acdd08626d29" name="_pag_r" value="1">
+	<script>
+	$('#__paginar__6acdd08626d29').keypress(function(event){
+ 		var keycode = (event.keyCode ? event.keyCode : event.which);
+      	if(keycode == '13'){
+			p = parseInt( $('#__paginar__6acdd08626d29').val() );
+			if( isNaN( p ) || p < 1 || p > 26 ) kernel.mensaje('-Debe ingresar un numero entre 1 y 26');
+			else window.location.href = 'buscador?csrf=589597fc53&accion=buscar&query=*:*&tipo_busqueda=numero&p=' + p;
+		}
+	});
+	</script>
+</li></ul><h3>Mostrando resultados del <b>1</b> al <b>25</b> de un total de <b>643</b> </h3><table class="sortable " id="obj_6198023"><colgroup><col class="col0 number"><col class="col1 string"><col class="col2 string"><col class="col3 string"><col class="col4 undefined"><col class="col5 undefined"></colgroup><caption></caption>
+<thead>
+<tr class="even">
+    <th class="number">Nº</th>
+    <th class="string">Tipo Documento</th>
+    <th class="string">Número Documento</th>
+    <th class="string">Título</th>
+    <th>Año de Documento</th>
+    <th>Fecha de Publicación</th>
+
+</tr>
+</thead>
+<tbody>
+
+    
+        
+                        <tr class="odd">
+            <td class="number">1</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=281">00285</a></td>
+            <td class="string"><a href="buscador?archivo=resolucion_00285.pdf&amp;nombre=normativa_universitaria_00285&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA ATRIBUCION EN DECANOS DE FACULTADES Y DIRECTORES DE INSTITUTOS PARA REALIZAR CURSOS Y ACTIVIDADES DE CAPACITACION REGULADAS EN LA LEY N°19.518, DE 1997. </a></td>
+                    <td>1989</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:06 hrs.</td>
+        </tr>
+
+        
+                        <tr class="even">
+            <td class="number">2</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=278">0273</a></td>
+            <td class="string"><a href="buscador?archivo=resolucion_0273.pdf&amp;nombre=normativa_universitaria_0273&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA   ATRIBUCIONES EN DIRECTOR(A) DE RECURSOS HUMANOS </a></td>
+                    <td>2017</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:06 hrs.</td>
+        </tr>
+
+        
+                        <tr class="odd">
+            <td class="number">3</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=269">0027</a></td>
+            <td class="string"><a href="buscador?archivo=resolucion_0027.pdf&amp;nombre=normativa_universitaria_0027&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGACION DE ATRIBUCIONES EN DIRECTORA DEL INSTITUTO DE NUTRICION Y TECNOLOGÍA DE LOS ALIMENTOS </a></td>
+                    <td></td>
+            <td style="white-space: nowrap">14/04/21 a las 17:06 hrs.</td>
+        </tr>
+
+        
+                        <tr class="even">
+            <td class="number">4</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=287">00355</a></td>
+            <td class="string"><a href="buscador?archivo=resolucion_00355.pdf&amp;nombre=normativa_universitaria_00355&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA ATRIBUCION EN EL DIRECTOR DE SERVICIOS DE TECNOLOGIAS DE INFORMACION PARA REALIZAR CURSOS Y ACTIVIDADES DE CAPACITACIÓN, REGULADAS EN LA LEY N°19.518, DE 1997. </a></td>
+                    <td>1989</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:06 hrs.</td>
+        </tr>
+
+        
+                        <tr class="odd">
+            <td class="number">5</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=260">0028941</a></td>
+            <td class="string"><a href="buscador?archivo=0028941.pdf&amp;nombre=normativa_universitaria_0028941&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGASE EN EL DECANO DE LA FACULTAD DE ECONOMIA Y NEGOCIOS 
+LA ATRIBUCION DE CREAR, EL “FONDO DE BECAS DE EMERGENCIA DE LA FACULTAD DE ECONOMIA Y NEGOCIOS”
+ </a></td>
+                    <td>2003</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:05 hrs.</td>
+        </tr>
+
+        
+                        <tr class="even">
+            <td class="number">6</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=284">00289</a></td>
+            <td class="string"><a href="buscador?archivo=resolucion_00289.pdf&amp;nombre=normativa_universitaria_00289&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA ATRIBUCION EN EL DECANO DE LA FACULTAD DE ECONOMÍA Y NEGOCIOS PARA REALIZAR CURSOS Y ACTIVIDADES DE CAPACITACION REGULADAS EN LA LEY N°19.518, DE 1997 </a></td>
+                    <td>1989</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:06 hrs.</td>
+        </tr>
+
+        
+                        <tr class="odd">
+            <td class="number">7</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=272">209</a></td>
+            <td class="string"><a href="buscador?archivo=resolucion_209.pdf&amp;nombre=normativa_universitaria_209&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA ATRIBUCIONES QUE INDICA EN MINISTRO DE FE DE INSTITUTOS  </a></td>
+                    <td>1989</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:06 hrs.</td>
+        </tr>
+
+        
+                        <tr class="even">
+            <td class="number">8</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=275">0235</a></td>
+            <td class="string"><a href="buscador?archivo=resolucion_0235.pdf&amp;nombre=normativa_universitaria_0235&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA  ATRIBUCIÓN EN FUNCIONARIO QUE INDICA </a></td>
+                    <td>2017</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:06 hrs.</td>
+        </tr>
+
+        
+                        <tr class="odd">
+            <td class="number">9</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=266">0034528</a></td>
+            <td class="string"><a href="buscador?archivo=0034528.pdf&amp;nombre=normativa_universitaria_0034528&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA ATRIBUCIÓN en Director(A) DE SERVICIOS e Infraestructura. </a></td>
+                    <td>2012</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:05 hrs.</td>
+        </tr>
+
+        
+                        <tr class="even">
+            <td class="number">10</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=263">0031987</a></td>
+            <td class="string"><a href="buscador?archivo=0031987.pdf&amp;nombre=normativa_universitaria_0031987&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA ATRIBUCION DE CELEBRAR CONVENIO QUE SEÑALA EN EL DECANO DE LA FACULTAD DE CIENCIAS FISICAS Y MATEMATICAS </a></td>
+                    <td>2004</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:05 hrs.</td>
+        </tr>
+
+        
+                        <tr class="odd">
+            <td class="number">11</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=251">0025808</a></td>
+            <td class="string"><a href="buscador?archivo=0025808.pdf&amp;nombre=normativa_universitaria_0025808&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> ASIGNA FUNCIONES Y DELEGA ATRIBUCIONES EN DIRECTOR EJECUTIVO TITULAR DE PROYECTO QUE INDICA </a></td>
+                    <td>2011</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:07 hrs.</td>
+        </tr>
+
+        
+                        <tr class="even">
+            <td class="number">12</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=107">0030561</a></td>
+            <td class="string"><a href="buscador?archivo=0030561.pdf&amp;nombre=normativa_universitaria_0030561&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA ATRIBUCIONES EN EL VICERRECTOR DE INVESTIGACIÓN Y DESARROLLO DE LA UNIVERSIDAD DE CHILE Y DEROGA D.U. N° 00949, DE 06.01.2014; D.U. N° 0038624, DE 03.10.2014; y D.U. N° 0010420 DE 31.03.2015. </a></td>
+                    <td></td>
+            <td style="white-space: nowrap">14/04/21 a las 17:07 hrs.</td>
+        </tr>
+
+        
+                        <tr class="odd">
+            <td class="number">13</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=113">0041186</a></td>
+            <td class="string"><a href="buscador?archivo=0041186.pdf&amp;nombre=normativa_universitaria_0041186&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA EN EL VICERRECTOR DE INVESTIGACION Y DESARROLLO LAS ATRIBUCIONES QUE SEÑALA ANTE EL DEPARTAMENTO DE PROPIEDAD INDUSTRIAL. </a></td>
+                    <td></td>
+            <td style="white-space: nowrap">14/04/21 a las 17:07 hrs.</td>
+        </tr>
+
+        
+                        <tr class="even">
+            <td class="number">14</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=104">0028435</a></td>
+            <td class="string"><a href="buscador?archivo=0028435.pdf&amp;nombre=normativa_universitaria_0028435&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DESIGNA A VICERRECTOR DE ASUNTOS ECONÓMICOS Y GESTION INSTITUCIONAL PARA FINES QUE INDICA EN EL CONVENIO DE DESEMPEÑO DENOMINADO “PLAN DE MODERNIZACION DE LA GESTION INSTITUCIONAL DE LA UNIVERSIDAD DE CHILE”. </a></td>
+                    <td>2007</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:07 hrs.</td>
+        </tr>
+
+        
+                        <tr class="odd">
+            <td class="number">15</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=110">0034509</a></td>
+            <td class="string"><a href="buscador?archivo=0034509.pdf&amp;nombre=normativa_universitaria_0034509&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA, EN DIRECTOR (A) DEL INSTITUTO DE ESTUDIOS AVANZADOS EN EDUCACIÓN LA FACULTAD DE FIRMAR, POR ORDEN DEL SR. RECTOR, FORMULARIOS DE CERTIFICACIÓN DE LAS ACCIONES FORMATIVAS QUE LA REFERIDA UNIDAD ACADÉMICA PRESENTE ANTE EL CENTRO DE PERFECCIONAMIENTO, EXPERIMENTACIÓN E INVESTIGACIÓNES PEDAGÓGICAS (CPEIP) DEL MINISTERIO DE EDUCACIÓN. </a></td>
+                    <td></td>
+            <td style="white-space: nowrap">14/04/21 a las 17:07 hrs.</td>
+        </tr>
+
+        
+                        <tr class="even">
+            <td class="number">16</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=101">0027808</a></td>
+            <td class="string"><a href="buscador?archivo=0027808.pdf&amp;nombre=normativa_universitaria_0027808&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA FACULTAD EN EL DIRECTOR DE FINANZAS Y ADMINISTRACION PATRIMONIAL. </a></td>
+                    <td>2006</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:07 hrs.</td>
+        </tr>
+
+        
+                        <tr class="odd">
+            <td class="number">17</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=254">0026725</a></td>
+            <td class="string"><a href="buscador?archivo=0026725.pdf&amp;nombre=normativa_universitaria_0026725&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA ATRIBUCION QUE INDICA EN EL DECANO DE LA FACULTAD DE CIENCIAS FISICAS Y MATEMATICAS </a></td>
+                    <td>2005</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:07 hrs.</td>
+        </tr>
+
+        
+                        <tr class="even">
+            <td class="number">18</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=98">0023498</a></td>
+            <td class="string"><a href="buscador?archivo=0023498.pdf&amp;nombre=normativa_universitaria_0023498&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA EN VICERRECTOR DE INVESTIGACION Y DESARROLLO LA ATRIBUCION DE DICTAR LAS RESOLUCIONES QUE AUTORIZAN LA REALIZACION DE CURSOS Y OTORGAMIENTO DE VIATICOS QUE SEÑALA. </a></td>
+                    <td>2004</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:07 hrs.</td>
+        </tr>
+
+        
+                        <tr class="odd">
+            <td class="number">19</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=116">0043150</a></td>
+            <td class="string"><a href="buscador?archivo=0043150.pdf&amp;nombre=normativa_universitaria_0043150&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA EN DIRECTOR JURÍDICO DE LA UNIVERSIDAD DE CHILE LA FACULTAD DE SOLICITAR PRÓRROGA DE PLAZOS ANTE REQUERIMIENTOS DE LA CONTRALORÍA GENERAL DE LA REPÚBLICA. </a></td>
+                    <td></td>
+            <td style="white-space: nowrap">14/04/21 a las 17:07 hrs.</td>
+        </tr>
+
+        
+                        <tr class="even">
+            <td class="number">20</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=257">0028884</a></td>
+            <td class="string"><a href="buscador?archivo=0028884.pdf&amp;nombre=normativa_universitaria_0028884&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA ATRIBUCIONES PARA CELEBRAR CONTRATOS DE ARRENDAMIENTO Y COMODATO QUE INDICA EN DECANOS DE FACULTAD Y DIRECTORES DE INSTITUTOS  </a></td>
+                    <td></td>
+            <td style="white-space: nowrap">14/04/21 a las 17:05 hrs.</td>
+        </tr>
+
+        
+                        <tr class="odd">
+            <td class="number">21</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=290">00390</a></td>
+            <td class="string"><a href="buscador?archivo=resolucion_00390.pdf&amp;nombre=normativa_universitaria_00390&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA EN EL DIRECTOR DE RECURSOS HUMANOS LA ATRIBUCION DE REPRESENTAR A LA UNIVERSIDAD DE CHILE ANTE EL SENCE, PARA EFECTOS QUE SEÑALA </a></td>
+                    <td>1999</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:06 hrs.</td>
+        </tr>
+
+        
+                        <tr class="even">
+            <td class="number">22</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=305">01257</a></td>
+            <td class="string"><a href="buscador?archivo=resolucion_01257.pdf&amp;nombre=normativa_universitaria_01257&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA  EN LA DECANA DE LA FACULTAD DE MEDICINA ATRIBUCIONES PARA EFECTUAR TODA CLASE  DE GESTIONES  Y TRÁMITES EN NOMBRE Y REPRESENTACIÓN DE LA UNIVERSIDAD DE CHILE ANTE EL SERVICIO NACIONAL DE ADUANAS </a></td>
+                    <td></td>
+            <td style="white-space: nowrap">14/04/21 a las 17:06 hrs.</td>
+        </tr>
+
+        
+                        <tr class="odd">
+            <td class="number">23</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=299">01008</a></td>
+            <td class="string"><a href="buscador?archivo=resolucion_01008.pdf&amp;nombre=normativa_universitaria_01008&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGACION DE ATRIBUCIONES </a></td>
+                    <td>2011</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:06 hrs.</td>
+        </tr>
+
+        
+                        <tr class="even">
+            <td class="number">24</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=314">01891</a></td>
+            <td class="string"><a href="buscador?archivo=resolucion_01891.pdf&amp;nombre=normativa_universitaria_01891&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA LA ATRIBUCION DE ACTUAR COMO MINISTRO DE FE PARA EFECTOS DE LO ESTABLECIDO EN LA LEY N°19.799 Y SU REGLAMENTO. </a></td>
+                    <td></td>
+            <td style="white-space: nowrap">14/04/21 a las 17:06 hrs.</td>
+        </tr>
+
+        
+                        <tr class="odd">
+            <td class="number">25</td>
+            <td class="string">Normativa Universitaria</td>
+            <td class="string"><a href="documento?id=308">01351</a></td>
+            <td class="string"><a href="buscador?archivo=resolucion_01351.pdf&amp;nombre=normativa_universitaria_01351&amp;csrf=589597fc53&amp;accion=descargar" target="_blank" class="file pdf"> DELEGA EN LA SRA. DECANA DE LA FACULTAD DE ARTES LA FACULTAD DE FIRMAR, POR ORDEN DEL RECTOR, CONVENIO DE COLABORACIÓN QUE INDICA. </a></td>
+                    <td>2017</td>
+            <td style="white-space: nowrap">14/04/21 a las 17:06 hrs.</td>
+        </tr>
+
+            
+</tbody>
+</table>    <script type="text/javascript" src="https://ucampus.uchile.cl/b/externos/resizer.js"></script>
+<div class="footer">
+    <img src="https://servicios.adi.ing.uchile.cl/d/img/logo_fcfm_footer.png">
+    <img src="https://servicios.adi.ing.uchile.cl/d/img/logo_campusdigital_footer.png">
+    <div class="info_footer">
+        <div>
+            Desarrollado por
+            <br>
+            <a href=" https://adi.ing.uchile.cl/?web02#contacto" target="_blank">
+                ADI - Área de Infotecnologías
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-Q388ECQML2"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){ dataLayer.push(arguments); }
+gtag('js', new Date());
+
+gtag('config','G-Q388ECQML2');
+</script>
+
+
+
+</div><iframe id="resizer_6acdd0863b7ae" src="https://ucampus.uchile.cl/b/externos/_resizer?_LB=uchile01-int&amp;height=4001&amp;width=704&amp;rdm=resizer_6acdd0863b7ae&amp;url=https%3A%2F%2Fservicios.adi.ing.uchile.cl%2Fm%2Fvisor_repositorio_normativo%2F%3F" style="width: 0px; height: 0px; visibility: hidden;"></iframe></body></html>
